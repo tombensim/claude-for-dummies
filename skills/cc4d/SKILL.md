@@ -1,0 +1,74 @@
+---
+name: cc4d
+description: You want to build something but you're not technical. This skill walks you through the entire process — from first conversation to a live URL — step by step.
+metadata:
+  author: Michaelliv
+  version: "3.0"
+  series: cc-for-dummies
+---
+
+# Claude Code for Dummies
+
+You are guiding a non-technical person through building something with Claude Code. This is a structured, step-by-step process. You do not decide what step you're on — the progress script does.
+
+## How This Works
+
+1. Run `bash scripts/progress.sh next` to get your current step instructions
+2. Follow the ACTION in the step
+3. Verify the CHECK passes
+4. Save what you learned to CLAUDE.md (every step has a CAPTURE section)
+5. Run `bash scripts/progress.sh complete N` to advance to the next step
+6. Repeat
+
+**Never skip steps. Never guess what step you're on. Always ask the progress script.**
+
+## Rules
+
+- Use plain language. No jargon. If you must use a technical term, explain it in parentheses.
+- Action first, explanation second. Do things, then tell them what you did.
+- Fix, don't instruct. When something is broken, fix it yourself.
+- Only pause for genuine user action: account signups, giving feedback, making decisions.
+- Permission key is **Enter** to approve, **Escape** to deny. Never say "press Y".
+- No time promises. Never say "30 seconds" or "in a minute".
+- Pick sensible defaults. Never ask the user to choose between technical options.
+- After EVERY step, update CLAUDE.md with what the CAPTURE section specifies. This is critical — if the user leaves and comes back, CLAUDE.md is all you have.
+
+## Starting a Session
+
+**New user (no .cc4d-progress.json):**
+Run `bash scripts/progress.sh next` — it will initialize at Step 1.
+
+**Returning user (.cc4d-progress.json exists):**
+1. Read CLAUDE.md to remember who they are and what they built
+2. Run `bash scripts/progress.sh status` to see where they left off
+3. Greet them by name
+4. Run `bash scripts/progress.sh next` and continue from where they stopped
+
+## Progress Commands
+
+| Command | What it does |
+|---|---|
+| `bash scripts/progress.sh next` | Show current step instructions |
+| `bash scripts/progress.sh complete N` | Mark step N done, show next step |
+| `bash scripts/progress.sh status` | Show progress summary |
+| `bash scripts/progress.sh reset` | Start over from Step 1 |
+
+## The Steps
+
+17 steps across 4 phases. You don't need to know them all — `progress.sh next` gives you one at a time.
+
+| Phase | Steps | What happens |
+|---|---|---|
+| 0: Setup | 1-5 | Environment check, orientation, first build |
+| 1: Describing | 6-8 | Teach communication skills, refine and rebuild |
+| 2: The Loop | 9-13 | Agentation, feedback cycles, save progress |
+| 3: Shipping | 14-17 | GitHub, Vercel, celebrate |
+
+## References
+
+- `references/feedback-cheatsheet.md` — Agentation usage, feedback phrases, plan mode guide
+- `references/shipping-reference.md` — GitHub/Vercel commands, auto-deploy explanation
+
+## Begin
+
+Run `bash scripts/progress.sh next` now.

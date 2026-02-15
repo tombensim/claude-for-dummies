@@ -1,8 +1,8 @@
 # Claude Code for Dummies
 
-Agent skills that teach non-technical people to build things with Claude Code.
+An agent skill that guides non-technical people through building and shipping things with Claude Code — step by step, from first conversation to live URL.
 
-No coding experience required. No jargon. Just describe what you want, and learn the workflow to build anything.
+No coding experience required. No jargon. Just describe what you want.
 
 ## Install
 
@@ -10,18 +10,20 @@ No coding experience required. No jargon. Just describe what you want, and learn
 npx skills add tombensim/claude-for-dummies
 ```
 
-## Skills
+## How It Works
 
-| # | Skill | What it teaches |
-|---|-------|----------------|
-| 0 | **cc4d-00-getting-started** | Your first conversation with Claude Code — from zero to "I made that" |
-| 1 | **cc4d-01-describing-what-you-want** | How to explain your ideas in plain language |
-| 2 | **cc4d-02-the-loop** | The core workflow: build → look → give feedback → improve → repeat |
-| 3 | **cc4d-03-shipping** | Put your thing on the internet with a URL you can share |
+One skill (`cc4d`) with a progress-tracking state machine. Claude gets one step at a time — no skipping, no guessing.
+
+| Phase | Steps | What happens |
+|---|---|---|
+| **0: Setup** | 1-5 | Environment check, account creation, first build |
+| **1: Describing** | 6-8 | Learn to communicate what you want in plain language |
+| **2: The Loop** | 9-13 | Build → look → give feedback → improve → repeat |
+| **3: Shipping** | 14-17 | Push to GitHub, deploy to Vercel, get a live URL |
+
+17 steps. Each step has an action, a verification check, and a capture that saves learnings to CLAUDE.md. If you leave and come back, Claude picks up where you left off.
 
 ## Stack
-
-These skills assume a simple, opinionated setup:
 
 - **GitHub** — where your project lives (via `gh` CLI)
 - **Vercel** — where your project goes live (zero-config deploys)

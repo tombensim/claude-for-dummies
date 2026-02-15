@@ -1,13 +1,8 @@
-# The Loop — Reference
+# Feedback Cheat Sheet
 
 ## Agentation Setup
 
-Agentation (agentation.dev) is a tool that lets you click on elements in your browser and annotate them. Instead of trying to describe what's wrong in words, you point at it and type a note.
-
-### Install
-```
-npm install agentation
-```
+Agentation (agentation.dev) lets you click on elements in your browser and annotate them. Instead of describing what's wrong in words, you point at it and type a note.
 
 ### How to Use
 1. Open your project in the browser
@@ -23,7 +18,7 @@ npm install agentation
 ### MCP Integration (Skip Copy-Paste)
 If you set up Agentation's MCP, Claude can see your annotations directly. Just annotate and say "address my feedback."
 
-## Feedback Cheat Sheet
+## Feedback Phrases
 
 ### Colors & Visual Style
 - "Too dark / too light / too bright"
@@ -52,7 +47,7 @@ If you set up Agentation's MCP, Claude can see your annotations directly. Just a
 - "This is too slow"
 - "This works on my computer but not my phone"
 
-### General Reactions
+### General
 - "I love this part, don't change it"
 - "This section feels off but I can't explain why"
 - "Can you show me two different versions of this?"
@@ -67,6 +62,6 @@ If you set up Agentation's MCP, Claude can see your annotations directly. Just a
 | "Redesign the whole homepage" | Plan mode |
 | "Add a shopping cart" | Plan mode |
 | "Fix the typo" | Just ask |
-| "Build a new section for testimonials" | Could go either way — ask if unsure |
+| "Build a new section for testimonials" | Could go either way |
 | "Make it work on mobile" | Plan mode |
 | "I want to start over" | Plan mode |
