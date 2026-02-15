@@ -1,0 +1,139 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  /* "For Dummies" Yellow/Black Brand */
+  --color-dummy-yellow: #FFD700;
+  --color-dummy-yellow-bright: #FFE94A;
+  --color-dummy-yellow-deep: #F5C800;
+  --color-dummy-black: #1A1A1A;
+  --color-dummy-black-light: #2D2D2D;
+  --color-dummy-white: #FFFFFF;
+  --color-dummy-red: #CC0000;
+
+  /* Semantic */
+  --color-bg-base: #FFD700;
+  --color-bg-dark: #1A1A1A;
+  --color-bg-elevated: #FFFFFF;
+  --color-text-on-yellow: #1A1A1A;
+  --color-text-on-black: #FFFFFF;
+  --color-text-dim: #666666;
+  --color-border-warm: #E6C200;
+
+  /* Fonts */
+  --font-display: "Lilita One", system-ui, sans-serif;
+  --font-display-he: "Secular One", system-ui, sans-serif;
+  --font-display-he-hand: "Playpen Sans Hebrew", system-ui, sans-serif;
+  --font-body-en: "DM Sans", system-ui, sans-serif;
+  --font-body-he: "Heebo", system-ui, sans-serif;
+
+  /* shadcn compat */
+  --color-background: #FFD700;
+  --color-foreground: #1A1A1A;
+  --color-primary: #1A1A1A;
+  --color-primary-foreground: #FFD700;
+  --color-secondary: #FFE94A;
+  --color-secondary-foreground: #1A1A1A;
+  --color-muted: #F5C800;
+  --color-muted-foreground: #333333;
+  --color-accent: #1A1A1A;
+  --color-accent-foreground: #FFD700;
+  --color-destructive: #CC0000;
+  --color-border: #E6C200;
+  --color-input: #E6C200;
+  --color-ring: #1A1A1A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A1A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1A1A;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Magic UI animations */
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+  @keyframes shimmer-slide {
+    to { transform: translate(calc(100cqw - 100%), 0); }
+  }
+  @keyframes spin-around {
+    0% { transform: translateZ(0) rotate(0); }
+    15%, 35% { transform: translateZ(0) rotate(90deg); }
+    65%, 85% { transform: translateZ(0) rotate(270deg); }
+    100% { transform: translateZ(0) rotate(360deg); }
+  }
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - var(--gap))); }
+  }
+  @keyframes marquee-vertical {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(-100% - var(--gap))); }
+  }
+}
+
+/* Base */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hebrew: clean bold for headings, handwritten for topic */
+html[dir="rtl"] {
+  --font-display: var(--font-display-he);
+}
+
+/* Handwritten/scratchy font - Karantina in Hebrew, Lilita One in English */
+.font-hand {
+  font-family: var(--font-display);
+}
+html[dir="rtl"] .font-hand {
+  font-family: var(--font-display-he-hand);
+  font-weight: 800;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hero entrance animations (CSS-only, no JS hydration needed) */
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroSlideIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.hero-fade-up {
+  animation: heroFadeUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.hero-slide-in {
+  animation: heroSlideIn 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Typewriter cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

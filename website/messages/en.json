@@ -1,0 +1,55 @@
+{
+  "Navbar": {
+    "magic": "How It Works",
+    "start": "Onboarding",
+    "logoPre": "Claude",
+    "logoHighlight": "for Dummies"
+  },
+  "Hero": {
+    "topic": "Claude Code",
+    "for": "FOR",
+    "dummies": "DUMMIES",
+    "subtitle": "You have an idea. Describe it. Watch it come to life.",
+    "cta": "Start Creating",
+    "ctaSecondary": "See how it works"
+  },
+  "TheMagic": {
+    "title": "How It Works (No Tech Jargon)",
+    "personaEyebrow": "User Persona: Non-Tech Builders",
+    "personaLine": "You know what you want to build, but not how to begin. This is made for you.",
+    "promiseLine": "We provide a seamless onboarding path, so you can start quickly with the right setup from day one.",
+    "userMsg1": "I want a simple website for my pottery classes.",
+    "aiMsg1": "Perfect. I will guide you. What should visitors do first?",
+    "userMsg2": "Book a class and join my mailing list.",
+    "aiMsg2": "Great. I am setting up your pages, forms, and structure now.",
+    "punchline": "You bring the idea. We guide the build.",
+    "browserCta": "Preview Site",
+    "tabChat": "Chat",
+    "tabCowork": "Cowork",
+    "tabCode": "Code",
+    "supportingCopy": "Behind the scenes, we apply proven best practices with opinionated tools and reusable skills, so you can focus on your business."
+  },
+  "GettingStarted": {
+    "title": "Your Seamless Onboarding",
+    "subtitle": "Built for people who are not technical, but clear on what they want to create.",
+    "benefitsTitle": "What You Get",
+    "benefit1title": "Step-by-step guidance",
+    "benefit1desc": "Clear prompts and next actions, so you always know what to do.",
+    "benefit2title": "Opinionated tools",
+    "benefit2desc": "We pick a reliable toolset that works well together, so you skip the guesswork.",
+    "benefit3title": "Built-in best practices",
+    "benefit3desc": "Your project starts clean, organized, and ready to grow.",
+    "stepsTitle": "How You Start",
+    "step1title": "Share your idea",
+    "step1desc": "Tell us what you want to build in plain language.",
+    "step2title": "Answer a few simple questions",
+    "step2desc": "We use your answers to set everything up for you.",
+    "step3title": "Start building with confidence",
+    "step3desc": "Use guided skills and templates instead of figuring it all out alone.",
+    "cta": "Start your guided setup"
+  },
+  "Footer": {
+    "tagline": "A beginner-friendly <link>the-shift.dev</link> project",
+    "copyright": "Claude for Dummies"
+  }
+}
