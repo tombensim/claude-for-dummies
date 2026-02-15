@@ -1,4 +1,4 @@
-# Step 11: Celebrate
+# Step 9: Celebrate
 
 ## ACTION
 
@@ -20,4 +20,4 @@ Final CLAUDE.md update:
 
 ## DONE
 
-Run: `bash scripts/progress.sh complete 11`
+Run: `bash scripts/progress.sh complete 9`

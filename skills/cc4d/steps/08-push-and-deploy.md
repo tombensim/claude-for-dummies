@@ -1,4 +1,4 @@
-# Step 10: Push to GitHub and Deploy
+# Step 8: Push to GitHub and Deploy
 
 ## ACTION
 
@@ -41,4 +41,4 @@ Save to CLAUDE.md:
 
 ## NEXT
 
-Run: `bash scripts/progress.sh complete 10`
+Run: `bash scripts/progress.sh complete 8`

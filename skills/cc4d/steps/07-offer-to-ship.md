@@ -1,11 +1,11 @@
-# Step 9: Offer to Ship
+# Step 7: Offer to Ship
 
 ## ACTION
 
 Ask: "Want other people to see this? I can put it on the internet with a link you can share."
 
 If they say no: "No problem. Whenever you're ready, just tell me 'ship it' and I'll put it online."
-- Go back to the feedback loop — run `bash scripts/progress.sh complete 6` to return to Step 7.
+- Go back to the feedback loop — run `bash scripts/progress.sh complete 4` to return to Step 5.
 
 If they say yes: proceed.
 
@@ -20,4 +20,4 @@ Save to CLAUDE.md:
 
 ## NEXT
 
-Run: `bash scripts/progress.sh complete 9`
+Run: `bash scripts/progress.sh complete 7`

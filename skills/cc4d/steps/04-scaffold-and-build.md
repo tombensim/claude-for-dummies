@@ -16,7 +16,20 @@ Use the project name from what the user described (slugified, e.g., "pottery-cla
 cd [project-name] && npm install agentation
 ```
 
-3. Add agentation to the root layout (`app/layout.tsx`). Import and render the `<Agentation />` component inside the body tag. This makes the feedback widget available on every page.
+3. Add agentation to the project. **Important**: Agentation is a client component and the root layout is a Server Component, so you must wrap it:
+
+Create `app/agentation-wrapper.tsx`:
+```tsx
+"use client";
+
+import { Agentation } from "agentation";
+
+export default function AgentationWrapper() {
+  return <Agentation />;
+}
+```
+
+Then import and render `<AgentationWrapper />` inside the `<body>` tag in `app/layout.tsx`. Do NOT import `Agentation` directly in the layout — it will crash.
 
 4. Build the first version based on everything gathered in Step 3 (vibe, audience, priority). Use Tailwind CSS for styling. Build directly in `app/page.tsx`.
 
@@ -36,6 +49,7 @@ Pick sensible defaults. Don't ask about technology choices. Use the vibe and pri
 
 - Next.js project exists with `package.json`
 - Agentation is in `node_modules`
+- `app/agentation-wrapper.tsx` exists with `"use client"` directive
 - Dev server is running
 - Browser opened to localhost:3000
 

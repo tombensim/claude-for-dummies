@@ -1,4 +1,4 @@
-# Step 8: Save Progress
+# Step 6: Save Progress
 
 ## ACTION
 
@@ -26,4 +26,4 @@ This step IS the capture — CLAUDE.md should be comprehensive at this point.
 
 ## NEXT
 
-Run: `bash scripts/progress.sh complete 8`
+Run: `bash scripts/progress.sh complete 6`

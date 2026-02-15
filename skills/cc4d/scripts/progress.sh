@@ -34,10 +34,10 @@ get_current_step() {
 # Get phase for a step number
 get_phase() {
   local step=$1
-  if [ "$step" -le 3 ]; then echo 0
-  elif [ "$step" -le 5 ]; then echo 1
-  elif [ "$step" -le 8 ]; then echo 2
-  elif [ "$step" -le 11 ]; then echo 3
+  if [ "$step" -le 2 ]; then echo 0
+  elif [ "$step" -le 4 ]; then echo 1
+  elif [ "$step" -le 6 ]; then echo 2
+  elif [ "$step" -le 9 ]; then echo 3
   else echo 3
   fi
 }
@@ -47,7 +47,7 @@ get_phase_name() {
   case $1 in
     0) echo "Setup" ;;
     1) echo "Build" ;;
-    2) echo "The Feedback Loop" ;;
+    2) echo "Iterate" ;;
     3) echo "Shipping" ;;
   esac
 }
@@ -107,7 +107,7 @@ show_status() {
   local phase_name=$(get_phase_name $phase)
 
   echo "=== CC4D: STATUS ==="
-  echo "CURRENT_STEP: $step of 11"
+  echo "CURRENT_STEP: $step of 9"
   echo "PHASE: $phase - $phase_name"
   echo "COMPLETED: $(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(','.join(map(str,d['completed'])) if d['completed'] else 'none')")"
   echo "=== END ==="

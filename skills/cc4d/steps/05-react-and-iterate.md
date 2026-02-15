@@ -1,10 +1,15 @@
-# Step 7: The Feedback Loop
+# Step 5: React and Iterate
 
 ## ACTION
 
-This is the core loop. Cycle between feedback and fixes:
+Ask: "What do you think? Take a look and tell me your first reaction."
 
-1. Ask for feedback: "Try it now — look at your project and tell me what you'd change."
+Then mention agentation briefly:
+- "See the little icon in the bottom-right corner of your site? You can click it, click on anything you want to change, type a note, and paste it here. I'll know exactly what you're pointing at. You can also just describe changes in words — whatever's easiest."
+
+Now loop between feedback and fixes:
+
+1. User gives feedback (via agentation, screenshots, or words)
 2. If feedback is vague (e.g., "I don't like it"), ask ONE follow-up: "What specifically bothers you — the colors, the layout, the text, the spacing?"
 3. Make the changes
 4. Refresh/show the result
@@ -24,6 +29,8 @@ Stay in this loop until the user signals they're happy:
 - "I think we're done"
 - They stop giving feedback
 
+See `references/feedback-cheatsheet.md` for the full feedback guide.
+
 ## CHECK
 
 User indicates they're satisfied.
@@ -31,11 +38,13 @@ User indicates they're satisfied.
 ## CAPTURE
 
 Save to CLAUDE.md:
-- **Changes made**: summary of all changes in this loop
+- **First reaction**: what they said initially
+- **Feedback preference**: which method they use (Agentation, screenshots, words)
+- **Changes made**: summary of all changes
 - **Decisions settled**: design choices that seem final
 - **Known issues**: anything flagged but decided to fix later
 - **Preferences confirmed**: colors, layout, tone, style — whatever they landed on
 
 ## NEXT
 
-Run: `bash scripts/progress.sh complete 7`
+Run: `bash scripts/progress.sh complete 5`

@@ -16,12 +16,12 @@ One skill (`cc4d`) with a progress-tracking state machine. Claude gets one step 
 
 | Phase | Steps | What happens |
 |---|---|---|
-| **0: Setup** | 1-3 | Environment check, orientation, gather idea with interactive questions |
-| **1: Build** | 4-5 | Scaffold Next.js + agentation, build first version, first reaction |
-| **2: The Feedback Loop** | 6-8 | Introduce agentation, feedback cycles, save progress |
-| **3: Shipping** | 9-11 | Push to GitHub, deploy to Vercel, get a live URL |
+| **0: Setup** | 1-2 | Environment check, orientation |
+| **1: Build** | 3-4 | Gather idea with interactive questions, scaffold Next.js + agentation, build first version |
+| **2: Iterate** | 5-6 | React & iterate (feedback loop with agentation), save progress |
+| **3: Shipping** | 7-9 | Push to GitHub, deploy to Vercel, get a live URL |
 
-11 steps. Each step has an action, a verification check, and a capture that saves learnings to CLAUDE.md. If you leave and come back, Claude picks up where you left off.
+9 steps. Each step has an action, a verification check, and a capture that saves learnings to CLAUDE.md. If you leave and come back, Claude picks up where you left off.
 
 ## Stack
 
