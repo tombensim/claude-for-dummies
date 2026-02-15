@@ -1,5 +1,5 @@
 ---
-name: 00-getting-started
+name: cc4d-00-getting-started
 description: You just installed Claude Code and don't know where to start. This skill walks you through your first conversation and helps you build something in minutes — no coding experience needed.
 metadata:
   author: Michaelliv
@@ -100,4 +100,4 @@ Tell the user: "I saved some notes about you and your project so I'll remember n
 Once they've built their first thing and gone through a round or two of changes, nudge them forward:
 
 - "Now that you've got the basics, here's a tip: the better you describe what you want, the closer I'll get on the first try. Things like 'make it look like [example]' or 'I want people to be able to [action]' go a long way."
-- This leads naturally into **01-describing-what-you-want** — helping them get better at communicating ideas.
+- This leads naturally into **cc4d-01-describing-what-you-want** — helping them get better at communicating ideas.

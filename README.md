@@ -14,10 +14,10 @@ npx skills add tombensim/claude-for-dummies
 
 | # | Skill | What it teaches |
 |---|-------|----------------|
-| 0 | **00-getting-started** | Your first conversation with Claude Code — from zero to "I made that" |
-| 1 | **01-describing-what-you-want** | How to explain your ideas in plain language |
-| 2 | **02-the-loop** | The core workflow: build → look → give feedback → improve → repeat |
-| 3 | **03-shipping** | Put your thing on the internet with a URL you can share |
+| 0 | **cc4d-00-getting-started** | Your first conversation with Claude Code — from zero to "I made that" |
+| 1 | **cc4d-01-describing-what-you-want** | How to explain your ideas in plain language |
+| 2 | **cc4d-02-the-loop** | The core workflow: build → look → give feedback → improve → repeat |
+| 3 | **cc4d-03-shipping** | Put your thing on the internet with a URL you can share |
 
 ## Stack
 

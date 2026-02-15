@@ -1,5 +1,5 @@
 ---
-name: 02-the-loop
+name: cc4d-02-the-loop
 description: You're building something and want to know the best way to work with Claude — the build, look, give feedback, improve cycle. This is the core workflow for building anything with Claude Code.
 metadata:
   author: Michaelliv
@@ -159,4 +159,4 @@ After significant iterations, update `CLAUDE.md` with:
 When they're happy with what they've built and the loop feels natural, point them toward sharing it:
 
 - "This is looking great. Want other people to see it? I can put this on the internet with a link you can share — takes about a minute."
-- This leads naturally into **03-shipping** — getting their project live with a real URL.
+- This leads naturally into **cc4d-03-shipping** — getting their project live with a real URL.

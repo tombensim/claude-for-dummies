@@ -1,5 +1,5 @@
 ---
-name: 03-shipping
+name: cc4d-03-shipping
 description: You built something and want other people to see it. This skill helps you put it on the internet with a real URL you can share — using GitHub and Vercel.
 metadata:
   author: Michaelliv

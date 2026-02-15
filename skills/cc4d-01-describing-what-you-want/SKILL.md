@@ -1,5 +1,5 @@
 ---
-name: 01-describing-what-you-want
+name: cc4d-01-describing-what-you-want
 description: You have an idea for something you want to build but you're not sure how to explain it to Claude. This skill helps you describe what you want in plain language — no technical words needed.
 metadata:
   author: Michaelliv
@@ -112,4 +112,4 @@ As you learn more about how the user communicates and what they care about, upda
 Once they're comfortable describing what they want and you've built a first version together, introduce the iteration workflow:
 
 - "Now that we have something, let me show you the fastest way to improve it. You look at it, tell me what to change — or even better, use a tool called Agentation to click on things and annotate them — and I'll fix it. We go back and forth until you're happy."
-- This leads naturally into **02-the-loop** — the core build-feedback-improve cycle.
+- This leads naturally into **cc4d-02-the-loop** — the core build-feedback-improve cycle.
