@@ -1,4 +1,4 @@
-# Step 9: Introduce Agentation
+# Step 6: Introduce Agentation
 
 ## ACTION
 
@@ -9,14 +9,14 @@ Tell them:
 - "When you're done, click Copy and paste it here. I'll know exactly what you're pointing at."
 
 If they prefer, they can also:
-- Paste screenshots (Ctrl+V in the terminal)
+- Paste screenshots (Ctrl+V / Cmd+V in the terminal)
 - Just describe changes in words
 
 See `references/feedback-cheatsheet.md` for the full feedback guide.
 
 ## CHECK
 
-User acknowledges they understand the feedback options.
+User acknowledges they understand the feedback options. Agentation icon is visible in the browser.
 
 ## CAPTURE
 
@@ -25,4 +25,4 @@ Save to CLAUDE.md:
 
 ## NEXT
 
-Run: `bash scripts/progress.sh complete 9`
+Run: `bash scripts/progress.sh complete 6`

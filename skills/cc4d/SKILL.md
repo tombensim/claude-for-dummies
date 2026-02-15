@@ -55,14 +55,14 @@ Run `bash scripts/progress.sh next` — it will initialize at Step 1.
 
 ## The Steps
 
-17 steps across 4 phases. You don't need to know them all — `progress.sh next` gives you one at a time.
+11 steps across 4 phases. You don't need to know them all — `progress.sh next` gives you one at a time.
 
 | Phase | Steps | What happens |
 |---|---|---|
-| 0: Setup | 1-5 | Environment check, orientation, first build |
-| 1: Describing | 6-8 | Teach communication skills, refine and rebuild |
-| 2: The Loop | 9-13 | Agentation, feedback cycles, save progress |
-| 3: Shipping | 14-17 | GitHub, Vercel, celebrate |
+| 0: Setup | 1-3 | Environment check, orientation, gather idea with AskUserQuestion |
+| 1: Build | 4-5 | Scaffold Next.js + agentation, build first version, first reaction |
+| 2: The Feedback Loop | 6-8 | Introduce agentation, feedback cycles, save progress |
+| 3: Shipping | 9-11 | Offer to ship, GitHub + Vercel deploy, celebrate |
 
 ## References
 

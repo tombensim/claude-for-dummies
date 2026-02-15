@@ -4,9 +4,9 @@
 
 Ask: "What do you think? Take a look and tell me your first reaction."
 
-If they want to change something, make ONE quick change to show it's possible.
+If they want to change something, make ONE quick change to show it's possible. Then move on — don't linger.
 
-Then say: "Nice — that was your first build. Now let me show you some tricks for describing what you want so I get it right faster."
+If they say it looks good, great — move on.
 
 ## CHECK
 
