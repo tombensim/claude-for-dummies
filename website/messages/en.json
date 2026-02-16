@@ -3,12 +3,12 @@
     "magic": "How It Works",
     "start": "Onboarding",
     "logoPre": "Claude",
-    "logoHighlight": "for Dummies"
+    "logoHighlight": "for Beginners"
   },
   "Hero": {
     "topic": "Claude Code",
     "for": "FOR",
-    "dummies": "DUMMIES",
+    "dummies": "BEGINNERS",
     "subtitle": "You have an idea. Describe it. Watch it come to life.",
     "cta": "Start Creating",
     "ctaSecondary": "See how it works"
@@ -50,6 +50,6 @@
   },
   "Footer": {
     "tagline": "A beginner-friendly <link>the-shift.dev</link> project",
-    "copyright": "Claude for Dummies"
+    "copyright": "Claude for Beginners"
   }
 }
