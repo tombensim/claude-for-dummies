@@ -14,7 +14,10 @@ Don't explain git. If they ask: "GitHub is like a cloud backup for your project.
 
 ### Part 2: Deploy to Vercel
 
-1. Deploy: `npx vercel --prod --yes`
+1. Deploy using `run_in_background: true` (this takes a while):
+   ```
+   Bash(command: "npx vercel --prod --yes", run_in_background: true)
+   ```
    - If login needed: walk them through it
 2. Capture the URL from the output
 3. Verify with:

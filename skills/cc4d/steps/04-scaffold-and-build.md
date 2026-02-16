@@ -2,18 +2,18 @@
 
 ## ACTION
 
-1. Scaffold a Next.js project:
+1. Scaffold a Next.js project. **Use `run_in_background: true`** — this command takes a while:
 
-```bash
-npx create-next-app@latest [project-name] --ts --tailwind --app --no-eslint --no-src-dir --import-alias "@/*"
+```
+Bash(command: "npx create-next-app@latest [project-name] --ts --tailwind --app --no-eslint --no-src-dir --import-alias '@/*'", run_in_background: true)
 ```
 
-Use the project name from what the user described (slugified, e.g., "pottery-class"). If the current directory already has files, scaffold into a subdirectory and tell the user.
+Use the project name from what the user described (slugified, e.g., "pottery-class"). If the current directory already has files, scaffold into a subdirectory and tell the user. Wait for the background task to complete before continuing.
 
-2. Install agentation:
+2. Install agentation. **Use `run_in_background: true`**:
 
-```bash
-cd [project-name] && npm install agentation
+```
+Bash(command: "cd [project-name] && npm install agentation", run_in_background: true)
 ```
 
 3. Add agentation to the project. **Important**: Agentation is a client component and the root layout is a Server Component, so you must wrap it:
@@ -33,13 +33,13 @@ Then import and render `<AgentationWrapper />` inside the `<body>` tag in `app/l
 
 4. Build the first version based on everything gathered in Step 3 (vibe, audience, priority). Use Tailwind CSS for styling. Build directly in `app/page.tsx`.
 
-5. Start the dev server and open in browser:
+5. Start the dev server. **Use `run_in_background: true`** — the dev server runs forever, so it must be backgrounded:
 
-```bash
-npm run dev &
+```
+Bash(command: "cd [project-name] && npm run dev", run_in_background: true)
 ```
 
-Then open `http://localhost:3000` in the browser.
+Then open `http://localhost:3000` in the browser. Do NOT use `&` to background the command. Do NOT set a timeout.
 
 6. Tell them: "Take a look — I built a first version based on what you described."
 
