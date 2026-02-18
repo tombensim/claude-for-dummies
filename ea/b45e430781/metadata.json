@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "eab45e430781",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "desktop/electron/find-claude.js",
+    "desktop/electron/ipc-handlers.js",
+    "desktop/electron/skill-files.js"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ea/b45e430781/0/metadata.json",
+      "transcript": "/ea/b45e430781/0/full.jsonl",
+      "context": "/ea/b45e430781/0/context.md",
+      "content_hash": "/ea/b45e430781/0/content_hash.txt",
+      "prompt": "/ea/b45e430781/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 334,
+    "cache_creation_tokens": 49754,
+    "cache_read_tokens": 474936,
+    "output_tokens": 107,
+    "api_call_count": 9
+  }
+}
