@@ -3,10 +3,11 @@
   "checkpoint_id": "0b178b286489",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "desktop/messages/en.json",
     "desktop/messages/he.json",
+    "desktop/releases/v0.1.0-RELEASE.md",
     "desktop/src/app/build/page.tsx",
     "desktop/src/lib/agent-client.ts",
     "skills/cc4d/SKILL.md",
@@ -23,13 +24,20 @@
       "context": "/0b/178b286489/0/context.md",
       "content_hash": "/0b/178b286489/0/content_hash.txt",
       "prompt": "/0b/178b286489/0/prompt.txt"
+    },
+    {
+      "metadata": "/0b/178b286489/1/metadata.json",
+      "transcript": "/0b/178b286489/1/full.jsonl",
+      "context": "/0b/178b286489/1/context.md",
+      "content_hash": "/0b/178b286489/1/content_hash.txt",
+      "prompt": "/0b/178b286489/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 37,
-    "cache_creation_tokens": 38675,
-    "cache_read_tokens": 3016319,
-    "output_tokens": 2992,
-    "api_call_count": 35
+    "input_tokens": 59,
+    "cache_creation_tokens": 72370,
+    "cache_read_tokens": 3808903,
+    "output_tokens": 4842,
+    "api_call_count": 53
   }
 }
