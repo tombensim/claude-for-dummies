@@ -1,7 +1,9 @@
 {
   "cli_version": "0.4.2",
   "checkpoint_id": "eab45e430781",
+  "session_id": "f36d2fe4-0938-4745-9f27-d17b1e3a062c",
   "strategy": "manual-commit",
+  "created_at": "2026-02-18T04:34:15.524801Z",
   "branch": "main",
   "checkpoints_count": 2,
   "files_touched": [
@@ -11,14 +13,11 @@
     "desktop/__tests__/unit/electron/session.test.ts",
     "desktop/__tests__/unit/lib/agent-client.test.ts",
     "desktop/electron/agent/session.ts",
-    "desktop/electron/find-claude.js",
-    "desktop/electron/ipc-handlers.js",
     "desktop/electron/main.ts",
     "desktop/electron/preload.ts",
     "desktop/electron/runtime/claude-manager.ts",
     "desktop/electron/runtime/git-manager.ts",
     "desktop/electron/runtime/node-manager.ts",
-    "desktop/electron/skill-files.js",
     "desktop/messages/he.json",
     "desktop/src/app/build/page.tsx",
     "desktop/src/app/ship/page.tsx",
@@ -26,27 +25,22 @@
     "desktop/src/lib/find-claude.ts",
     "desktop/src/lib/progress-config.ts"
   ],
-  "sessions": [
-    {
-      "metadata": "/ea/b45e430781/0/metadata.json",
-      "transcript": "/ea/b45e430781/0/full.jsonl",
-      "context": "/ea/b45e430781/0/context.md",
-      "content_hash": "/ea/b45e430781/0/content_hash.txt",
-      "prompt": "/ea/b45e430781/0/prompt.txt"
-    },
-    {
-      "metadata": "/ea/b45e430781/1/metadata.json",
-      "transcript": "/ea/b45e430781/1/full.jsonl",
-      "context": "/ea/b45e430781/1/context.md",
-      "content_hash": "/ea/b45e430781/1/content_hash.txt",
-      "prompt": "/ea/b45e430781/1/prompt.txt"
-    }
-  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "12d950a7-bf87-4f00-953e-19ce5eeeaa03",
   "token_usage": {
-    "input_tokens": 381,
-    "cache_creation_tokens": 89847,
-    "cache_read_tokens": 2724704,
-    "output_tokens": 4181,
-    "api_call_count": 52
+    "input_tokens": 47,
+    "cache_creation_tokens": 40093,
+    "cache_read_tokens": 2249768,
+    "output_tokens": 4074,
+    "api_call_count": 43
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T04:34:15.488219Z",
+    "agent_lines": 0,
+    "human_added": 67,
+    "human_modified": 1638,
+    "human_removed": 0,
+    "total_committed": 428,
+    "agent_percentage": 0
   }
 }
