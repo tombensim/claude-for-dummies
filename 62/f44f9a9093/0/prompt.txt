@@ -1,0 +1,5 @@
+the chat needs to support images as input
+
+---
+
+[Request interrupted by user for tool use]
