@@ -1,0 +1,239 @@
+Implement the following plan:
+
+# Iterative Workflow UX: Beyond "Prompt to App"
+
+## Context
+
+The desktop app currently excels at the **"Build from Scratch"** journey — a linear, 9-step wizard (setup → build → iterate → ship → celebrate). But once a user has a live project, they need ongoing workflows: adding features, fixing bugs, implementing feedback, changing design. Today, clicking a recent project dumps you back into `/build` at whatever step you left off, with no clear UX for these iterative tasks. The linear step system doesn't accommodate "go back and keep working."
+
+**The long-term value of CC4D isn't the first build — it's the ongoing relationship.** Building is a one-time event; maintaining and evolving is where users spend most of their time.
+
+---
+
+## User Scenarios
+
+**Maria** — built a portfolio site last week. Wants to add a "Contact Me" form. She doesn't need setup or scaffolding. She needs to describe what she wants, watch it happen, and deploy.
+
+**Yossi** — his landing page has a broken mobile layout. A friend found the bug. He needs to explain the issue, have Claude fix it, verify, and deploy.
+
+**Dani** — got feedback that her event registration is confusing. She wants to paste the feedback, have Claude improve the flow, review the changes, and push live.
+
+**Amir** — changed his mind about his site's colors. Wants to describe the new look, see it in preview, and deploy when happy.
+
+### Common Pattern
+
+All iterative workflows share:
+1. **Resume context** — Claude needs to understand the existing project (CLAUDE.md + git history already provide this)
+2. **Express intent** — User describes what they want
+3. **Watch it happen** — Same build experience with live preview
+4. **Review & iterate** — Same feedback loop as step 5
+5. **Deploy update** — Push changes live
+
+The difference from "build from scratch": no setup, no scaffolding, no idea gathering. The user arrives with a **specific task**, not a blank canvas.
+
+---
+
+## Proposed UX: Two Modes
+
+### Mode 1: Guided Build (existing, unchanged)
+- Linear 9-step wizard
+- For brand-new projects
+- Mascot guides you through every step
+
+### Mode 2: Workspace (new)
+- Free-form, task-oriented
+- For returning to existing projects (step 4+ completed)
+- Same chat + preview layout, different chrome and entry point
+
+The mode is **automatically determined**: if a project has completed at least step 4 (first build exists), it opens in Workspace mode. Mid-wizard projects resume the wizard.
+
+---
+
+## Design: Welcome Page as Project Hub
+
+### Current
+- Flat list of recent projects as small horizontal cards
+- One big "Start Building" CTA
+- No project status info
+
+### Proposed
+- **Returning users** (have projects): Projects are the hero, "Build something new" is secondary
+- **New users** (no projects): "Build something new" is the hero with full onboarding
+
+Each project card shows:
+- Project name
+- **Status badge**: "Live" (green, has vercel URL), "Local" (yellow, built but not deployed), "In Progress" (building)
+- Last activity time
+- Live URL (if deployed) as a subtle link
+
+```
+┌──────────────────────────────────────────────────┐
+│  [Mascot waving]                                  │
+│  "Hi! What are we working on?"                    │
+│                                                    │
+│  YOUR PROJECTS                                     │
+│  ┌─────────────────────────────────────────────┐  │
+│  │ Portfolio Site              🟢 Live          │  │
+│  │ Updated 2 days ago                           │  │
+│  └─────────────────────────────────────────────┘  │
+│  ┌─────────────────────────────────────────────┐  │
+│  │ Event Page                  🟡 Local         │  │
+│  │ Updated 5 days ago                           │  │
+│  └─────────────────────────────────────────────┘  │
+│                                                    │
+│  ┌─────────────────────────────────────────────┐  │
+│  │  ✨ Build something new                      │  │
+│  └─────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────┘
+```
+
+---
+
+## Design: Workspace Mode (Build Page)
+
+When opening a project that already has a first build (step 4+):
+
+### Header Changes
+Replace the step indicator with a **project status bar**:
+- Left: Back arrow + Project name
+- Center: Status badge (Live / Local)
+- Right: **Deploy button** (always accessible) + Settings
+
+### Chat Area
+- Previous conversation visible (with optional collapse/clear)
+- **Quick-start suggestion chips** shown above the input when chat is empty or at the bottom:
+  - "Add a feature" → prefills: "I want to add a new feature: "
+  - "Fix something" → prefills: "I need to fix something: "
+  - "Change design" → prefills: "I want to change the look: "
+- Chips disappear once user sends first message
+- No auto-prompt sent to Claude — the user drives
+
+### Preview
+- Auto-starts dev server (same port polling as today)
+- Falls back to showing the live URL if dev server won't start
+- Same desktop/mobile toggle
+
+### Project Drawer
+- Keeps identity card, choices card, activity log, quick actions
+- **Timeline collapses** to a simple "Built and shipped" summary instead of showing all 9 steps
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  [←] Portfolio Site                🟢 Live    [Deploy ↑] │
+│  ────────────────────────────────────────────────────────│
+│  ┌─── Chat ───────────────────┐ ┌─── Preview ──────────┐│
+│  │                             │ │                       ││
+│  │  [Previous conversation     │ │   [Live preview of   ││
+│  │   collapsed/scrollable]     │ │    the project]      ││
+│  │                             │ │                       ││
+│  │                             │ │                       ││
+│  │  ┌───────────────────────┐  │ │                       ││
+│  │  │ Suggestions:          │  │ │                       ││
+│  │  │ [Add feature]         │  │ │                       ││
+│  │  │ [Fix something]       │  │ │                       ││
+│  │  │ [Change design]       │  │ │                       ││
+│  │  └───────────────────────┘  │ │                       ││
+│  │  ┌───────────────────┐      │ │                       ││
+│  │  │ What do you need? │ [➤]  │ │                       ││
+│  │  └───────────────────┘      │ │                       ││
+│  └─────────────────────────────┘ └───────────────────────┘│
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Design: Deploy as a First-Class Action
+
+Currently, deployment is a 3-step phase (steps 7-8-9) gated behind the linear wizard. In workspace mode:
+
+**Option A: Header Deploy Button**
+- Always visible in workspace mode header
+- Click → confirmation ("Deploy your latest changes?") → runs git commit + vercel deploy
+- Shows progress inline (saving → publishing → done with URL)
+
+**Option B: Chat-Triggered Deploy**
+- User types "deploy" or "put it online" or clicks a "Deploy" quick action
+- Claude handles the git + vercel flow conversationally
+
+**Recommendation: Both.** The button is a shortcut; the chat is the fallback for users who prefer conversational flow.
+
+---
+
+## Design: Claude's Behavior in Workspace Mode
+
+The CC4D skill's current "Returning user" section (read CLAUDE.md, check status, greet by name, run `progress.sh next`) is close but needs adjustment.
+
+### What Changes
+1. **No step system** — Don't run `progress.sh next`. The project is past the wizard.
+2. **Context loading** — Read CLAUDE.md (already has all CAPTURE data from steps 1-9), `git log --oneline -10` for recent history
+3. **Dev server** — Start `npm run dev` if not already running
+4. **Wait for user** — Don't send an introductory message. The user's first message IS the task.
+5. **Task execution** — Same principles: plain language, fix don't instruct, pick sensible defaults
+6. **Deployment** — When user says "deploy" or clicks the button, run `git add -A && git commit && vercel --prod --yes`
+
+### Initial Prompt Format (Desktop → Agent)
+
+For workspace mode, the desktop app sends a **system context message** (not a user prompt):
+
+```
+[WORKSPACE MODE]
+The user is returning to an existing project. Do NOT run the step system.
+Read CLAUDE.md for project context. Start the dev server if not running.
+Wait for the user's message — they will tell you what they need.
+Locale: [he/en]
+```
+
+Then the user's actual typed message follows as a separate prompt.
+
+---
+
+## Implementation Overview
+
+### Files to Modify
+
+| File | Change |
+|------|--------|
+| `desktop/src/app/welcome/page.tsx` | Redesign as project hub with status badges |
+| `desktop/src/app/build/page.tsx` | Add workspace mode (detect from step/phase, change header/chips/no auto-prompt) |
+| `desktop/src/lib/store.ts` | Add `isWorkspaceMode` derived state, quick-action handling |
+| `desktop/src/components/chat/ChatInput.tsx` | Add suggestion chips above input |
+| `desktop/src/components/chat/SuggestionChips.tsx` | New component for quick-start actions |
+| `desktop/src/components/build/WorkspaceHeader.tsx` | New header variant for workspace mode |
+| `desktop/src/components/build/DeployButton.tsx` | New deploy button component |
+| `desktop/electron/main.js` | `project:deploy` IPC handler (or reuse agent route) |
+| `desktop/messages/en.json` + `he.json` | New strings for workspace UI |
+| `skills/cc4d/SKILL.md` | Add "Workspace Mode" section |
+
+### Key Logic
+
+**Workspace mode detection** (in store or build page):
+```
+isWorkspaceMode = completedSteps.includes(4) && projectHasExistingSession
+```
+
+**Welcome page project cards**: Read `liveUrl` from project meta to show Live/Local status.
+
+**Deploy button**: Sends a deploy prompt to the agent: "Deploy my latest changes to production" — Claude handles git + vercel.
+
+---
+
+## Decisions Made
+
+1. **Chat history**: Show last session collapsible — previous conversation visible behind a "Previous session" divider. User can expand to review, but focus is on the new task. On each new workspace entry, archive the previous session.
+2. **Dev server**: Auto-start on entry — preview appears immediately when opening the project. Feels responsive and alive.
+3. **Deploy**: Header button + chat — a Deploy button always visible in the workspace header AND available as a chat command. Button is a one-click shortcut; chat allows conversational deploy.
+4. **Quick actions**: Suggestion chips above input — shown when chat is empty, prefill the input with a starter prompt, disappear after first message.
+
+---
+
+## Verification
+
+- Open app with existing projects → see project hub with status badges
+- Click existing project (step 4+ complete) → lands in workspace mode (no step indicator, suggestion chips visible)
+- Type a message or click chip → Claude responds contextually, no wizard behavior
+- Click Deploy → changes get committed and deployed
+- Click "Build something new" → full wizard flow (unchanged)
+- Return to mid-wizard project (step 1-3) → resumes wizard (unchanged)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.claude/projects/-Users-tombensim-code-the-shift-claude-for-dummies/1cbbede8-f048-4f22-a1c7-0dc87c99ec02.jsonl
