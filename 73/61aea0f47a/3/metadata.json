@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "7361aea0f47a",
+  "session_id": "87c8e4cf-715e-401f-ac29-e52bf07ac48c",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T04:54:13.459616Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "desktop/__tests__/unit/electron/claude-manager.test.ts",
+    "desktop/__tests__/unit/electron/git-manager.test.ts",
+    "desktop/__tests__/unit/electron/node-manager.test.ts",
+    "desktop/__tests__/unit/electron/session.test.ts",
+    "desktop/electron/agent/session.ts",
+    "desktop/electron/main.ts",
+    "desktop/electron/preload.ts",
+    "desktop/electron/runtime/claude-manager.ts",
+    "desktop/electron/runtime/git-manager.ts",
+    "desktop/electron/runtime/node-manager.ts",
+    "desktop/src/components/project/CollapsibleSection.tsx"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 29,
+    "cache_creation_tokens": 26271,
+    "cache_read_tokens": 965314,
+    "output_tokens": 553,
+    "api_call_count": 23
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T04:54:13.44538Z",
+    "agent_lines": 0,
+    "human_added": 691,
+    "human_modified": 52,
+    "human_removed": 0,
+    "total_committed": 743,
+    "agent_percentage": 0
+  }
+}
