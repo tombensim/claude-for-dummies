@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "62f44f9a9093",
+  "session_id": "66a12625-5bba-4b4b-8158-d870bc8b9da4",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T05:08:02.863541Z",
+  "branch": "main",
+  "checkpoints_count": 0,
+  "files_touched": [
+    "desktop/src/components/chat/SuggestionChips.tsx",
+    "desktop/src/components/project/ProjectEnvVars.tsx",
+    "desktop/src/components/project/ProjectInspirations.tsx",
+    "desktop/src/components/project/ProjectServices.tsx"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 2022,
+    "cache_creation_tokens": 24020,
+    "cache_read_tokens": 248070,
+    "output_tokens": 1633,
+    "api_call_count": 7
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T05:08:02.811835Z",
+    "agent_lines": 0,
+    "human_added": 1404,
+    "human_modified": 454,
+    "human_removed": 0,
+    "total_committed": 1858,
+    "agent_percentage": 0
+  }
+}
