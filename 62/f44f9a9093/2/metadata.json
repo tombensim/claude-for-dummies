@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "62f44f9a9093",
+  "session_id": "7adfda1f-a64f-4f99-8593-b05afc23da95",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T05:08:03.034655Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
+    "desktop/src/app/build/page.tsx",
+    "desktop/src/app/welcome/page.tsx",
+    "desktop/src/components/build/WorkspaceHeader.tsx",
+    "desktop/src/components/chat/ChatInput.tsx",
+    "desktop/src/components/chat/ChatPanel.tsx",
+    "desktop/src/components/chat/SuggestionChips.tsx",
+    "desktop/src/lib/progress-config.ts",
+    "desktop/src/lib/store.ts",
+    "skills/cc4d/SKILL.md"
+  ],
+  "agent": "Claude Code",
+  "checkpoint_transcript_start": 74,
+  "transcript_lines_at_start": 74,
+  "token_usage": {
+    "input_tokens": 63,
+    "cache_creation_tokens": 67724,
+    "cache_read_tokens": 4151964,
+    "output_tokens": 4592,
+    "api_call_count": 61
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T05:08:02.978838Z",
+    "agent_lines": 293,
+    "human_added": 597,
+    "human_modified": 281,
+    "human_removed": 0,
+    "total_committed": 1171,
+    "agent_percentage": 25.02134927412468
+  }
+}
