@@ -3,14 +3,23 @@
   "checkpoint_id": "ad7d10f76a82",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 2,
+  "checkpoints_count": 3,
   "files_touched": [
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
     "desktop/src/app/build/page.tsx",
     "desktop/src/components/chat/ActivityBlockView.tsx",
     "desktop/src/components/chat/AssistantMessage.tsx",
     "desktop/src/components/chat/BuildingBlock.tsx",
     "desktop/src/components/chat/LiveActivityBar.tsx",
-    "desktop/src/components/chat/PlanningHeader.tsx"
+    "desktop/src/components/chat/PlanningHeader.tsx",
+    "desktop/src/lib/agent-client.ts",
+    "skills/cc4d/SKILL.md",
+    "skills/cc4d/references/voice.md",
+    "skills/cc4d/steps/02-orient-user.md",
+    "skills/cc4d/steps/05-react-and-iterate.md",
+    "skills/cc4d/steps/07-offer-to-ship.md",
+    "skills/cc4d/steps/09-celebrate.md"
   ],
   "sessions": [
     {
@@ -26,13 +35,20 @@
       "context": "/ad/7d10f76a82/1/context.md",
       "content_hash": "/ad/7d10f76a82/1/content_hash.txt",
       "prompt": "/ad/7d10f76a82/1/prompt.txt"
+    },
+    {
+      "metadata": "/ad/7d10f76a82/2/metadata.json",
+      "transcript": "/ad/7d10f76a82/2/full.jsonl",
+      "context": "/ad/7d10f76a82/2/context.md",
+      "content_hash": "/ad/7d10f76a82/2/content_hash.txt",
+      "prompt": "/ad/7d10f76a82/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 60,
-    "cache_creation_tokens": 78797,
-    "cache_read_tokens": 2338611,
-    "output_tokens": 4062,
-    "api_call_count": 54
+    "input_tokens": 90,
+    "cache_creation_tokens": 127713,
+    "cache_read_tokens": 3921215,
+    "output_tokens": 6486,
+    "api_call_count": 82
   }
 }

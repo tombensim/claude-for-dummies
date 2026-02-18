@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "ad7d10f76a82",
+  "session_id": "e62d476b-ffad-400f-b939-4cbac6c7978f",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T08:17:47.620575Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
+    "desktop/src/app/build/page.tsx",
+    "desktop/src/lib/agent-client.ts",
+    "skills/cc4d/SKILL.md",
+    "skills/cc4d/references/voice.md",
+    "skills/cc4d/steps/02-orient-user.md",
+    "skills/cc4d/steps/05-react-and-iterate.md",
+    "skills/cc4d/steps/07-offer-to-ship.md",
+    "skills/cc4d/steps/09-celebrate.md"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 30,
+    "cache_creation_tokens": 48916,
+    "cache_read_tokens": 1582604,
+    "output_tokens": 2424,
+    "api_call_count": 28
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T08:17:47.589233Z",
+    "agent_lines": 76,
+    "human_added": 64,
+    "human_modified": 118,
+    "human_removed": 0,
+    "total_committed": 258,
+    "agent_percentage": 29.457364341085274
+  }
+}

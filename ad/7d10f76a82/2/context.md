@@ -1,0 +1,17 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+Implement the following plan:
+
+# Plan: Add "SOUL" — Shaul Amsterdamsky Voice to Desktop App
+
+## Context
+
+The desktop app guides non-technical users through building a website. The voice is currently generic-friendly. The goal is to infuse it with Shaul Amsterdamsky's distinctive style: warm, colloquial, self-deprecating, honest, action-first, never preachy. He writes like he's talking to you across a Jerusalem cafe table.
+
+Key traits to capture:
+- **Spoken register** — writes like people tal...
+

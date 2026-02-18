@@ -1,0 +1,116 @@
+Implement the following plan:
+
+# Plan: Add "SOUL" — Shaul Amsterdamsky Voice to Desktop App
+
+## Context
+
+The desktop app guides non-technical users through building a website. The voice is currently generic-friendly. The goal is to infuse it with Shaul Amsterdamsky's distinctive style: warm, colloquial, self-deprecating, honest, action-first, never preachy. He writes like he's talking to you across a Jerusalem cafe table.
+
+Key traits to capture:
+- **Spoken register** — writes like people talk, not like a textbook
+- **Honest deflation** — builds aspiration, then admits uncertainty
+- **Self-deprecating humor** — he's the butt of the joke, never the user
+- **Direct singular address** — "אתה/את" not "אתם", "you" not "you guys"
+- **Concrete/sensory** — names specifics, no abstract platitudes
+- **Short punchy sentences** — fragments OK, trail-offs OK
+- **"Framing is everything"** — how you say it matters as much as what
+
+## Changes
+
+### 1. Create `skills/cc4d/references/voice.md` (NEW)
+
+The SOUL document — bilingual (Hebrew + English) voice guide with:
+- Voice principles (9 rules)
+- Do's and Don'ts
+- Hebrew-specific guidance (casual register, "יאללה"/"תכלס" OK, food metaphors)
+- English-specific guidance (casual smart friend, not startup bro)
+- Example phrase tables for: greeting, build-done, error, celebration, feedback request
+
+### 2. Update `skills/cc4d/SKILL.md`
+
+- Add voice reference to `## References` section
+- Add voice rule to `## Rules` section (1-line summary + pointer to voice.md)
+
+### 3. Update step files with Amsterdamsky-style examples
+
+**`steps/02-orient-user.md`** — Replace greeting examples:
+- EN: "Hey! Got an idea for a site? Tell me what you're picturing and I'll build it. You talk, I code."
+- HE: "היי! יש לך רעיון לאתר? ספר לי מה אתה רואה בראש ואני אבנה את זה. אתה מדבר, אני עובד."
+
+**`steps/05-react-and-iterate.md`** — Replace feedback ask:
+- EN: "So? What do you think? Tell me what bugs you, what you like, what's missing."
+
+**`steps/07-offer-to-ship.md`** — Replace shipping prompt:
+- EN: "Want to put this on the internet? I can give you a link that works for anyone, anywhere."
+
+**`steps/09-celebrate.md`** — Replace celebration:
+- EN: "That's it. You have a website. On the actual internet. Anyone with the link can see it right now. Let that sink in."
+
+### 4. Update `desktop/messages/he.json`
+
+Two types of changes:
+1. **Voice updates** — greeting, feedback, errors, celebration, planning strings
+2. **Register fix** — change all plural "אתם" forms to singular "אתה/את" (the app is a 1:1 conversation, Amsterdamsky always uses singular)
+
+Key string changes:
+| Key | Current | New |
+|-----|---------|-----|
+| Welcome.greeting | היי! אני כאן לעזור לך לבנות משהו! | היי! יש לך רעיון? יאללה, נבנה אותו. |
+| Welcome.whatToBuild | מה אתם רוצים לבנות? | מה בא לך לבנות? |
+| Build.feedbackBanner | מה דעתכם? לחצו על כל דבר... | נו, מה אתה אומר? תגיד מה מפריע ומה בסדר. |
+| Done.congratulations | בניתם משהו ושמתם אותו באינטרנט! | זהו. יש לך אתר. באינטרנט. ברצינות. |
+| Errors.tryAgain | רגע, מנסה שוב... | אופס. שנייה... |
+| Planning.title | בואו נתכנן את הפרויקט שלכם | בוא נבין מה אתה צריך |
+
+Plus ~10 more plural→singular fixes across Welcome, Build, Ship sections.
+
+### 5. Update `desktop/messages/en.json`
+
+| Key | Current | New |
+|-----|---------|-----|
+| Welcome.greeting | Hi! I'm going to help you build something! | Hey! Got an idea? Let's build it. |
+| Build.feedbackBanner | What do you think? Click anything... | So? What do you think? Point at anything you'd change. |
+| Done.congratulations | You just built something and put it on the internet! | That's it. Your site is on the internet. For real. |
+| Errors.tryAgain | Hmm, let me try that again... | Whoops. Give me a sec... |
+| Planning.title | Let's plan your project | Let's figure out what you need |
+
+### 6. Update `desktop/src/lib/agent-client.ts`
+
+- Error fallback strings (lines 283, 303): `"Whoops. Give me a sec..."` / `"אופס. שנייה..."`
+- Tool status messages stay functional (they appear in tiny spinner text, not conversational)
+
+### 7. Update `desktop/src/app/build/page.tsx`
+
+- `formatInitialMessage()` (line 27-29): Match `Planning.readyToStart` strings
+- Error handler (line 173-175): Match new error strings
+
+## What NOT to change
+
+- Functional button labels (Send, Refresh, Deploy, Copy link, etc.)
+- ProjectPanel structural labels
+- Attachment strings
+- Tool status spinner messages (too brief for personality)
+- Steps 01, 03, 04, 06, 08 (mechanical/technical, not voice-heavy)
+- Reference files (feedback-cheatsheet, shipping-reference, spec-examples)
+
+## Implementation order
+
+1. `skills/cc4d/references/voice.md` — foundation
+2. `skills/cc4d/SKILL.md` — activate voice
+3. Step files (02, 05, 07, 09) — agent examples
+4. `messages/he.json` — largest surface (voice + register fix)
+5. `messages/en.json` — voice updates
+6. `agent-client.ts` — error strings
+7. `build/page.tsx` — initial message + error strings
+
+## Verification
+
+1. Run `cd desktop && npm run dev` — start the app
+2. Switch between Hebrew and English locale
+3. Start a new wizard flow — check greeting tone
+4. Verify all Hebrew strings use singular address (no "אתם")
+5. Check error messages display correctly
+6. Read through voice.md to confirm it captures the Amsterdamsky essence
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.REDACTED.jsonl
