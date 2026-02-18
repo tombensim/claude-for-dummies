@@ -1,0 +1,55 @@
+Implement the following plan:
+
+# Fix Chat UX Issues
+
+## Context
+The desktop app's chat UI has several visual problems visible in the screenshot: repeated mascot avatars on every assistant message, building blocks that are nearly invisible against the yellow background, an overwhelming all-yellow color scheme, and the PlanningHeader taking up too much space once conversation starts.
+
+## Changes
+
+### 1. Group assistant messages under a single mascot
+**Files:** `AssistantMessage.tsx`, `ActivityBlockView.tsx`
+
+- Add `showAvatar?: boolean` prop to `AssistantMessage` (default `true`)
+- When `showAvatar` is false, render a 36px-wide empty spacer div instead of the mascot (keeps bubble alignment)
+- In `ActivityBlockView`, pass `showAvatar={idx === 0}` so only the first message in a block gets the mascot
+- Wrap the assistant block messages in `<div className="space-y-1.5">` for tighter internal spacing
+
+### 2. Make building blocks visible
+**File:** `BuildingBlock.tsx`
+
+- Container: `bg-dummy-black/5` → `bg-dummy-white/60 backdrop-blur-sm`
+- Left border: `border-dummy-black/20` → `border-dummy-black/40`
+- Summary text: `text-dummy-black/70` → `text-dummy-black/80`
+- Icons: `text-dummy-black/50` → `text-dummy-black/60`
+
+### 3. Improve chat area contrast
+**Files:** `build/page.tsx`, `LiveActivityBar.tsx`
+
+- Chat area bg: `bg-dummy-yellow-bright/30` → `bg-dummy-yellow/15` (lighter cream)
+- LiveActivityBar: `bg-dummy-yellow-bright/40` → `bg-dummy-white/70` (frosted white strip)
+
+### 4. Compact PlanningHeader after conversation starts
+**File:** `PlanningHeader.tsx`
+
+- Track `messages.length` from the store
+- When `messageCount > 2`: switch to compact horizontal layout (32px mascot, single-line title, no subtitle) — reclaims ~150px of vertical space
+- Use Framer Motion `layout` prop for smooth transition
+
+## Verification
+- Run `cd desktop && npm run dev`
+- Start a new wizard session and verify: PlanningHeader shrinks after first exchange
+- Send multiple messages and verify: assistant messages share one mascot per block
+- Check building blocks are clearly visible against the background
+- Verify RTL layout still works correctly (mascot on right side, text aligned properly)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.REDACTED.jsonl
+
+---
+
+I want to be able to delete projects (it should ask me if i want to remove them from my computer etc)
+
+---
+
+[Request interrupted by user for tool use]
