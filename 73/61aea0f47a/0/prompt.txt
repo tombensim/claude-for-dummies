@@ -1,0 +1,7 @@
+I think that the current desktop app focuses on "Building from scratch" which is great, but we also need to invest and spend time on adding features, or fixing bugs \
+  implementing user feedback, please give this topic extensive thought and realize what is the user edxperience that we want to support for the workflows that are not
+  "prompt to app"
+
+---
+
+[Request interrupted by user for tool use]
