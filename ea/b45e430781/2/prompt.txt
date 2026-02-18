@@ -1,0 +1,5 @@
+can we change the app logo (@desktop) to use our mascot instead of electron's logo>
+
+---
+
+commit this

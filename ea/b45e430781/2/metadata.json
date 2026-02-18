@@ -1,0 +1,42 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "eab45e430781",
+  "session_id": "31844a62-4f6b-4e4b-b250-ee71c767f790",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T04:34:44.445431Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "desktop/__tests__/unit/electron/claude-manager.test.ts",
+    "desktop/__tests__/unit/electron/git-manager.test.ts",
+    "desktop/__tests__/unit/electron/node-manager.test.ts",
+    "desktop/__tests__/unit/electron/session.test.ts",
+    "desktop/electron/agent/session.ts",
+    "desktop/electron/main.js",
+    "desktop/electron/main.ts",
+    "desktop/electron/preload.ts",
+    "desktop/electron/runtime/claude-manager.ts",
+    "desktop/electron/runtime/git-manager.ts",
+    "desktop/electron/runtime/node-manager.ts",
+    "desktop/public/icon.icns",
+    "desktop/public/icon.ico",
+    "desktop/public/icon.png"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 23,
+    "cache_creation_tokens": 37466,
+    "cache_read_tokens": 864221,
+    "output_tokens": 1492,
+    "api_call_count": 19
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T04:34:44.40901Z",
+    "agent_lines": 0,
+    "human_added": 2224,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 2224,
+    "agent_percentage": 0
+  }
+}
