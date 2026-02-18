@@ -1,0 +1,105 @@
+Implement the following plan:
+
+# Plan: Add File/Document Attachment to Projects
+
+## Context
+
+Users need a way to add reference files (design mockups, brand guidelines, logos, screenshots, content docs) to their project so Claude can see and use them during the build. Currently the only file operations are project creation and opening the folder in Finder — there's no way to attach files from the app itself.
+
+**Goal:** Drag & drop files onto the chat area or click an attach button. Files are auto-copied into a `references/` subfolder. A message is sent to the agent so Claude knows the files are there.
+
+---
+
+## Files to Modify
+
+| File | Change |
+|---|---|
+| `desktop/electron/ipc-handlers.js` | Add `file:open-dialog` and `file:copy-to-project` IPC handlers |
+| `desktop/electron/preload.js` | Expose `openFileDialog` and `copyFilesToProject` |
+| `desktop/src/types/electron-api.d.ts` | Add types for the 2 new methods |
+| `desktop/__tests__/setup/mocks/electron-api.ts` | Add mock stubs |
+| `desktop/messages/en.json` | Add `Attachments` i18n section |
+| `desktop/messages/he.json` | Add `Attachments` i18n section (Hebrew) |
+| `desktop/src/components/chat/ChatInput.tsx` | Add paperclip attach button |
+| `desktop/src/components/chat/ChatPanel.tsx` | Add drag-and-drop zone + attachment orchestration |
+
+---
+
+## Implementation Steps
+
+### 1. IPC Handlers (`ipc-handlers.js`)
+
+- Add `dialog` to the `require("electron")` destructure
+- **`file:open-dialog`** — calls `dialog.showOpenDialog` with multi-select, filtered to images/docs/design files. Returns `{ canceled, filePaths }`
+- **`file:copy-to-project`** — takes `{ projectDir, filePaths }`, creates `<projectDir>/references/` via `fs.mkdirSync({ recursive: true })`, copies each file with `fs.copyFileSync`. Handles:
+  - Duplicate filenames: appends `-2`, `-3`, etc. (matches existing pattern)
+  - Size limit: 50MB per file, rejects with error message
+  - Returns per-file results: `[{ src, dest, copied, error? }]`
+
+### 2. Preload Bridge (`preload.js`)
+
+Add two methods to `contextBridge.exposeInMainWorld`:
+```js
+openFileDialog: (options) => ipcRenderer.invoke("file:open-dialog", options),
+copyFilesToProject: (projectDir, filePaths) => ipcRenderer.invoke("file:copy-to-project", { projectDir, filePaths }),
+```
+
+### 3. TypeScript Types (`electron-api.d.ts`)
+
+Add typed signatures for both new methods on the `electronAPI` interface.
+
+### 4. Test Mock (`electron-api.ts`)
+
+Add `openFileDialog` and `copyFilesToProject` mock stubs.
+
+### 5. i18n Strings (`en.json` + `he.json`)
+
+New `Attachments` section with keys: `attach`, `dropHere`, `dropHint`, `copying`, `failed`, `tooLarge`, `noProject`.
+
+### 6. ChatInput (`ChatInput.tsx`)
+
+- Add `onAttach: (filePaths: string[]) => void` prop
+- Add a paperclip button (Lucide `Paperclip` icon) to the left of the text input
+- On click: calls `window.electronAPI?.openFileDialog()`, passes selected paths to `onAttach`
+- Disabled while streaming
+
+### 7. ChatPanel (`ChatPanel.tsx`) — Main Orchestration
+
+- **Drag-and-drop zone:** Attach `onDragOver`, `onDragLeave`, `onDrop` to the root div
+  - Show a yellow overlay with upload icon + "Drop files here" text when files are dragged over
+  - Use `e.dataTransfer.types.includes("Files")` to only react to file drags (not text)
+  - Use bounding rect check in `onDragLeave` to prevent flickering on child elements
+  - In Electron, dropped `File` objects have a `.path` property for the native path
+- **`handleFilesAttached` callback** (shared by drag-drop and attach button):
+  1. Call `window.electronAPI.copyFilesToProject(projectDir, filePaths)`
+  2. For successfully copied files: call `onSend()` with a message like "I've added these reference files to the project: file1.png, file2.pdf. They are in the references/ folder."
+  3. For failed files: add a local `status` message (not sent to agent)
+- Pass `onAttach={handleFilesAttached}` to `ChatInput`
+
+---
+
+## Key Design Decisions
+
+- **`references/` subfolder** keeps user files organized and separate from code
+- **Auto-message to agent** means Claude immediately knows about new files without user having to explain
+- **50MB limit** prevents accidental huge file copies
+- **Filename deduplication** avoids silent overwrites
+- **Optional chaining** (`window.electronAPI?.openFileDialog?.()`) ensures web-only dev mode doesn't crash
+
+---
+
+## Verification
+
+1. Run `npm run dev` in desktop/, open the Electron app
+2. Create a project via the welcome flow
+3. **Attach button:** Click paperclip → native file picker opens → select files → they appear in `~/Documents/Claude Projects/<project>/references/` → chat message sent to Claude
+4. **Drag & drop:** Drag file from Finder over chat → yellow overlay appears → drop → same copy + message flow
+5. **Edge cases:** Drop 50MB+ file (error status shown), drop duplicate name (gets `-2` suffix), drag text not files (no overlay)
+6. Run existing tests: `npm test` to verify no regressions
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.REDACTED.jsonl
+
+---
+
+commit this
