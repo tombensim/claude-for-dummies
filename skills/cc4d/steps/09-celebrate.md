@@ -2,8 +2,15 @@
 
 ## ACTION
 
-- "You just built something and put it on the internet. That link works for anyone, anywhere."
-- "Whenever you want to change something, just come back and tell me. We'll tweak it together and your live site updates automatically."
+Celebrate simply — don't over-do it (see `references/voice.md`):
+
+- EN: "That's it. You have a website. On the actual internet. Anyone with the link can see it right now. Let that sink in."
+- HE: "זהו. יש לך אתר. באינטרנט. ברצינות. כל אחד עם הלינק יכול לראות את זה עכשיו."
+
+Then mention they can come back:
+
+- EN: "Whenever you want to change something, just come back and tell me."
+- HE: "כשתרצה לשנות משהו, פשוט תחזור ותגיד לי."
 
 ## CHECK
 

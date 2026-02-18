@@ -25,7 +25,7 @@ import LanguageToggle from "@/components/brand/LanguageToggle";
 
 function formatInitialMessage(locale: "he" | "en"): string {
   return locale === "he"
-    ? "היי! אני מוכן/ה להתחיל"
+    ? "היי! אני מוכן להתחיל"
     : "Hey! I'm ready to start";
 }
 
@@ -184,8 +184,8 @@ export default function BuildPage() {
             role: "status",
             content:
               store.locale === "he"
-                ? "רגע, מנסה שוב..."
-                : "Hmm, let me try that again...",
+                ? "אופס. שנייה..."
+                : "Whoops. Give me a sec...",
             timestamp: Date.now(),
           });
         },

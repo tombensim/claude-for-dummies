@@ -2,7 +2,10 @@
 
 ## ACTION
 
-Ask: "What do you think? Take a look and tell me your first reaction."
+Ask for feedback directly (see `references/voice.md`):
+
+- EN: "So? What do you think? Tell me what bugs you, what you like, what's missing."
+- HE: "נו, מה אתה אומר? תגיד מה מפריע, מה בסדר, מה חסר."
 
 Then mention agentation briefly:
 - "See the little icon in the bottom-right corner of your site? You can click it, click on anything you want to change, type a note, and paste it here. I'll know exactly what you're pointing at. You can also just describe changes in words — whatever's easiest."

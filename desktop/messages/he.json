@@ -16,12 +16,12 @@
     "ready": "הכל מוכן!"
   },
   "Welcome": {
-    "greeting": "היי! אני כאן לעזור לך לבנות משהו!",
-    "whatToBuild": "מה אתם רוצים לבנות?",
-    "placeholder": "תארו את הרעיון שלכם...",
-    "noIdea": "לא בטוחים? מה דעתכם על דף אישי?",
+    "greeting": "היי! יש לך רעיון? יאללה, נבנה אותו.",
+    "whatToBuild": "מה בא לך לבנות?",
+    "placeholder": "תאר את הרעיון שלך...",
+    "noIdea": "לא בטוח? מה דעתך על דף אישי?",
     "submit": "יאללה, נתחיל!",
-    "vibeTitle": "איזה סגנון מתאים לכם?",
+    "vibeTitle": "איזה סגנון מתאים לך?",
     "vibeClean": "נקי ומינימלי",
     "vibeWarm": "חם ונעים",
     "vibeBold": "נועז וצבעוני",
@@ -36,16 +36,16 @@
     "prioritySignup": "להירשם או ליצור קשר",
     "priorityBrowse": "לעיין במה שאני מציע",
     "priorityCool": "שזה ייראה מגניב",
-    "designTitle": "יש אתר שאתם רוצים להידמות אליו?",
+    "designTitle": "יש אתר שאתה רוצה להידמות אליו?",
     "designYes": "כן, יש לי קישור",
-    "designSurprise": "לא, תפתיעו אותי",
+    "designSurprise": "לא, תפתיע אותי",
     "startBuilding": "יאללה, נתחיל לבנות!",
     "buildSomethingNew": "לבנות משהו חדש",
-    "recentProjects": "המשיכו פרויקט קיים",
-    "yourProjects": "הפרויקטים שלכם",
+    "recentProjects": "המשך פרויקט קיים",
+    "yourProjects": "הפרויקטים שלך",
     "hubGreeting": "על מה עובדים?",
-    "projectReady": "המרחב שלכם מוכן!",
-    "projectReadySub": "הכנו מקום לפרויקט שלכם.",
+    "projectReady": "המרחב שלך מוכן!",
+    "projectReadySub": "הכנתי מקום לפרויקט שלך.",
     "statusLive": "באוויר",
     "statusLocal": "מקומי",
     "statusInProgress": "בבנייה"
@@ -57,25 +57,25 @@
     "makingChanges": "מבצע שינויים...",
     "checkingWorks": "בודק שהכל עובד...",
     "startingPreview": "מפעיל תצוגה מקדימה...",
-    "takeLook": "תסתכלו — בניתי גרסה ראשונה!",
-    "feedbackBanner": "מה דעתכם? לחצו על כל דבר שתרצו לשנות",
-    "yourMessage": "הקלידו הודעה...",
+    "takeLook": "תסתכל — הרכבתי גרסה ראשונה.",
+    "feedbackBanner": "נו, מה אתה אומר? תגיד מה מפריע ומה בסדר.",
+    "yourMessage": "הקלד הודעה...",
     "send": "שלח",
     "mobile": "נייד",
     "desktop": "מחשב",
     "refresh": "רענון"
   },
   "Ship": {
-    "readyToShare": "מוכנים לשתף את זה עם העולם?",
+    "readyToShare": "רוצה לשים את זה באינטרנט?",
     "shipIt": "לשים את זה באינטרנט!",
     "keepWorking": "עוד לא, להמשיך לעבוד",
     "saving": "שומר את הפרויקט...",
     "publishing": "מעלה לאינטרנט...",
     "almostLive": "כמעט באוויר...",
-    "yourSiteIsLive": "האתר שלכם באוויר!"
+    "yourSiteIsLive": "האתר שלך באוויר!"
   },
   "Done": {
-    "congratulations": "בניתם משהו ושמתם אותו באינטרנט!",
+    "congratulations": "זהו. יש לך אתר. באינטרנט. ברצינות.",
     "changeSomething": "לשנות משהו",
     "buildNew": "לבנות משהו חדש",
     "worksOnPhones": "עובד גם בטלפון!",
@@ -90,7 +90,7 @@
     "step": "שלב"
   },
   "Errors": {
-    "tryAgain": "רגע, מנסה שוב...",
+    "tryAgain": "אופס. שנייה...",
     "somethingWrong": "משהו השתבש. ננסה מכיוון אחר",
     "connectionLost": "החיבור נותק. מנסה להתחבר מחדש"
   },
@@ -100,9 +100,9 @@
     "daysAgo": "לפני {count} ימים"
   },
   "Planning": {
-    "title": "בואו נתכנן את הפרויקט שלכם",
-    "subtitle": "אשאל כמה שאלות כדי שאבנה בדיוק את מה שאתם צריכים",
-    "readyToStart": "היי! אני מוכן/ה להתחיל"
+    "title": "בוא נבין מה אתה צריך",
+    "subtitle": "אשאל כמה שאלות כדי שאבנה בדיוק את מה שאתה צריך",
+    "readyToStart": "היי! אני מוכן להתחיל"
   },
   "Chat": {
     "conversationRestored": "השיחה שוחזרה"
@@ -128,12 +128,12 @@
   "Attachments": {
     "attach": "צירוף קובץ",
     "attachImage": "צירוף תמונה",
-    "dropHere": "שחררו קבצים כאן",
+    "dropHere": "שחרר קבצים כאן",
     "dropHint": "תמונות, PDF, קבצי עיצוב",
     "copying": "מעתיק קבצים...",
     "failed": "צירוף {name} נכשל",
     "tooLarge": "{name} חורג ממגבלת 50 MB",
-    "noProject": "צרו פרויקט קודם כדי לצרף קבצים",
+    "noProject": "צור פרויקט קודם כדי לצרף קבצים",
     "imageTooBig": "התמונה חייבת להיות עד 5 MB",
     "imageTooMany": "עד 5 תמונות בכל פעם",
     "unsupportedType": "רק תמונות PNG, JPEG, GIF ו-WebP נתמכות",
@@ -147,7 +147,7 @@
     "audience": "קהל יעד",
     "priority": "מטרה",
     "designRef": "השראה לעיצוב",
-    "surpriseMe": "תפתיעו אותי!",
+    "surpriseMe": "תפתיע אותי!",
     "timeline": "התקדמות",
     "activityLog": "מה קרה",
     "openFolder": "פתיחת תיקיית הפרויקט",
@@ -193,8 +193,8 @@
     "showValue": "הצגה",
     "hideValue": "הסתרה",
     "notes": "הערות",
-    "notesPlaceholder": "כתבו הערות על הפרויקט שלכם...",
-    "connectGithubPrompt": "עזרו לי לחבר את חשבון GitHub שלי כדי שאוכל לשמור את הקוד",
-    "connectVercelPrompt": "עזרו לי לחבר את חשבון Vercel שלי כדי שאוכל לפרסם את האתר"
+    "notesPlaceholder": "כתוב הערות על הפרויקט שלך...",
+    "connectGithubPrompt": "עזור לי לחבר את חשבון GitHub שלי כדי שאוכל לשמור את הקוד",
+    "connectVercelPrompt": "עזור לי לחבר את חשבון Vercel שלי כדי שאוכל לפרסם את האתר"
   }
 }

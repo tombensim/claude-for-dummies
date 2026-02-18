@@ -281,8 +281,8 @@ export function parseAgentEvent(
           role: "status",
           content:
             locale === "he"
-              ? "רגע, מנסה שוב..."
-              : "Hmm, let me try that again...",
+              ? "אופס. שנייה..."
+              : "Whoops. Give me a sec...",
           timestamp: now,
         },
         activity: null,

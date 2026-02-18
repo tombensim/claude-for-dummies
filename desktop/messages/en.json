@@ -16,7 +16,7 @@
     "ready": "All set!"
   },
   "Welcome": {
-    "greeting": "Hi! I'm going to help you build something!",
+    "greeting": "Hey! Got an idea? Let's build it.",
     "whatToBuild": "What do you want to build?",
     "placeholder": "Describe your idea...",
     "noIdea": "Not sure? How about a personal page?",
@@ -58,7 +58,7 @@
     "checkingWorks": "Checking everything works...",
     "startingPreview": "Starting your preview...",
     "takeLook": "Take a look — I built a first version!",
-    "feedbackBanner": "What do you think? Click anything you'd like to change",
+    "feedbackBanner": "So? What do you think? Point at anything you'd change.",
     "yourMessage": "Type a message...",
     "send": "Send",
     "mobile": "Mobile",
@@ -75,7 +75,7 @@
     "yourSiteIsLive": "Your site is live!"
   },
   "Done": {
-    "congratulations": "You just built something and put it on the internet!",
+    "congratulations": "That's it. Your site is on the internet. For real.",
     "changeSomething": "Change something",
     "buildNew": "Build something new",
     "worksOnPhones": "Works on phones too!",
@@ -90,7 +90,7 @@
     "step": "Step"
   },
   "Errors": {
-    "tryAgain": "Hmm, let me try that again...",
+    "tryAgain": "Whoops. Give me a sec...",
     "somethingWrong": "Something went wrong. Let me try a different approach.",
     "connectionLost": "Connection lost. Reconnecting..."
   },
@@ -100,7 +100,7 @@
     "daysAgo": "{count} days ago"
   },
   "Planning": {
-    "title": "Let's plan your project",
+    "title": "Let's figure out what you need",
     "subtitle": "I'll ask a few questions so I can build exactly what you need",
     "readyToStart": "Hey! I'm ready to start"
   },
