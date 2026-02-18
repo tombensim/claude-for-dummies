@@ -1,0 +1,81 @@
+Implement the following plan:
+
+# Delete Projects Feature
+
+## Context
+The welcome page lists projects but has no way to remove them. Users accumulate test projects and want to clean up. The `removeProject()` function already exists in `electron/project-store.mjs` but is never wired to IPC or exposed to the renderer.
+
+## Changes
+
+### 1. IPC handler — `project:delete`
+**File:** `electron/ipc-handlers.js`
+
+Add a new `project:delete` handler that:
+- Looks up the project by id to get its `path`
+- Calls `projectStore.removeProject(id)` to remove from electron-store
+- If `deleteFiles` is true, uses `fs.rm(project.path, { recursive: true, force: true })` to delete the folder
+- Logs the action
+- Returns `{ success: true }` or throws
+
+### 2. Preload bridge
+**File:** `electron/preload.js`
+
+Add `deleteProject` method that invokes `project:delete`.
+
+### 3. TypeScript types
+**File:** `src/types/electron-api.d.ts`
+
+Add `deleteProject: (id: string, deleteFiles: boolean) => Promise<{ success: boolean }>` to the interface.
+
+### 4. i18n strings
+**Files:** `messages/he.json`, `messages/en.json`
+
+Add under `"Welcome"`:
+- `deleteProject`, `deleteConfirmTitle`, `deleteConfirmMessage`
+- `deleteKeepFiles`, `deleteAndRemoveFiles`, `deleteCancel`
+
+### 5. Delete button + confirmation modal on welcome page
+**File:** `src/app/welcome/page.tsx`
+
+- Add a `Trash2` icon button on each project card (visible on hover via group-hover)
+- `e.stopPropagation()` to prevent card navigation
+- Sets `deletingProject` state to show an inline confirmation modal
+- Modal shows project name and three options:
+  - "Just remove from list" → `deleteProject(id, false)`
+  - "Also delete files from my computer" → `deleteProject(id, true)`
+  - "Cancel"
+- On confirm: call API, then filter the project from local `recentProjects` state
+- Use `AnimatePresence` for smooth card removal animation
+
+## Files Modified
+1. `electron/ipc-handlers.js` — new `project:delete` IPC handler
+2. `electron/preload.js` — expose `deleteProject`
+3. `src/types/electron-api.d.ts` — type the new method
+4. `messages/he.json` + `messages/en.json` — i18n strings
+5. `src/app/welcome/page.tsx` — delete button + confirmation UI
+
+## Verification
+- `cd desktop && npm run dev`
+- Open welcome page with existing projects
+- Hover a project card → trash icon appears
+- Click trash → confirmation modal appears
+- Test "Just remove from list" → project disappears, files remain on disk
+- Test "Also delete files" → project disappears, folder deleted
+- Test cancel → nothing happens
+- Verify RTL layout (Hebrew)
+- Build check: `npx next build`
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.REDACTED.jsonl
+
+---
+
+the button is misplaced
+
+---
+
+I deleted a project, I still see it
+
+---
+
+commit this
