@@ -65,6 +65,26 @@ Run `bash scripts/progress.sh next` — it will initialize at Step 1.
 | 2: Iterate | 5-6 | React & iterate (feedback loop with agentation), save progress |
 | 3: Shipping | 7-9 | Offer to ship, GitHub + Vercel deploy, celebrate |
 
+## Workspace Mode
+
+When the user's first message starts with `[WORKSPACE MODE]`, the project already has a first build and the user is returning to make changes. This is a **free-form, task-oriented** mode — NOT the step-by-step wizard.
+
+### What to do
+
+1. **Do NOT run `progress.sh`** — no `next`, no `complete`, no step system at all.
+2. **Read CLAUDE.md** to understand the project (name, vibe, audience, tech stack, what was built).
+3. **Check if the dev server is running** — run `npm run dev` with `run_in_background: true` if it's not already up on port 3000.
+4. **Wait for the user's actual message** — the `[WORKSPACE MODE]` message is system context, not a user request. The user's next message will describe what they need (add a feature, fix a bug, change the design, deploy, etc.).
+5. **Execute the task** using the same principles as the wizard: plain language, fix don't instruct, pick sensible defaults, action first explanation second.
+6. **Deploy when asked** — when the user says "deploy", "put it online", or similar: run `git add -A && git commit -m "Update site" && npx vercel --prod --yes` (use `run_in_background: true` for vercel). Report the live URL back.
+7. **Update CLAUDE.md** after significant changes to keep it current for next time.
+
+### What NOT to do
+
+- Do NOT send an introductory greeting or "what would you like to do?" message — the user drives.
+- Do NOT run `bash scripts/progress.sh` anything.
+- Do NOT follow the 9-step flow. The project is past the wizard.
+
 ## References
 
 - `references/feedback-cheatsheet.md` — Agentation usage, feedback phrases, plan mode guide

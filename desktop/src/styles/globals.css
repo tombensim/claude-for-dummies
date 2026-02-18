@@ -1,0 +1,158 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  /* "For Dummies" Yellow/Black Brand */
+  --color-dummy-yellow: #FFD700;
+  --color-dummy-yellow-bright: #FFE94A;
+  --color-dummy-yellow-deep: #F5C800;
+  --color-dummy-black: #1A1A1A;
+  --color-dummy-black-light: #2D2D2D;
+  --color-dummy-white: #FFFFFF;
+  --color-dummy-red: #CC0000;
+
+  /* Semantic */
+  --color-bg-base: #FFD700;
+  --color-bg-dark: #1A1A1A;
+  --color-bg-elevated: #FFFFFF;
+  --color-text-on-yellow: #1A1A1A;
+  --color-text-on-black: #FFFFFF;
+  --color-text-dim: #666666;
+  --color-border-warm: #E6C200;
+
+  /* Fonts */
+  --font-display: "Lilita One", system-ui, sans-serif;
+  --font-display-he: "Secular One", system-ui, sans-serif;
+  --font-display-he-hand: "Playpen Sans Hebrew", system-ui, sans-serif;
+  --font-body-en: "DM Sans", system-ui, sans-serif;
+  --font-body-he: "Heebo", system-ui, sans-serif;
+
+  /* shadcn compat */
+  --color-background: #FFD700;
+  --color-foreground: #1A1A1A;
+  --color-primary: #1A1A1A;
+  --color-primary-foreground: #FFD700;
+  --color-secondary: #FFE94A;
+  --color-secondary-foreground: #1A1A1A;
+  --color-muted: #F5C800;
+  --color-muted-foreground: #333333;
+  --color-accent: #1A1A1A;
+  --color-accent-foreground: #FFD700;
+  --color-destructive: #CC0000;
+  --color-border: #E6C200;
+  --color-input: #E6C200;
+  --color-ring: #1A1A1A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A1A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1A1A;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* Base */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hebrew: clean bold for headings */
+html[dir="rtl"] {
+  --font-display: var(--font-display-he);
+}
+
+/* Handwritten/scratchy font */
+.font-hand {
+  font-family: var(--font-display);
+}
+html[dir="rtl"] .font-hand {
+  font-family: var(--font-display-he-hand);
+  font-weight: 800;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Electron: drag region for custom titlebar */
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Entrance animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-check {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.animate-pulse-check {
+  animation: pulse-check 0.4s ease-out;
+}
+
+/* Typewriter cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Card style tokens */
+.card-brand {
+  @apply rounded-2xl border-4 border-dummy-black shadow-[8px_8px_0_0_#1A1A1A] bg-dummy-white;
+}
+
+.btn-primary {
+  @apply bg-dummy-black text-dummy-yellow font-bold border-4 border-dummy-black
+         rounded-xl px-6 py-3 transition-all
+         hover:bg-transparent hover:text-dummy-black;
+}
+
+.btn-secondary {
+  @apply bg-transparent text-dummy-black font-bold border-4 border-dummy-black
+         rounded-xl px-6 py-3 transition-all
+         hover:bg-dummy-black hover:text-dummy-yellow;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
