@@ -1,0 +1,101 @@
+Implement the following plan:
+
+# Plan: Add Image Input to Chat
+
+## Context
+
+The chat currently only supports text input. Users need to attach images (design references, screenshots) so Claude can see them. The app already has a Paperclip button for file attachment via Electron IPC (`openFileDialog` + `copyFilesToProject`), but it copies files to the project without making them visible to Claude or displaying them in chat.
+
+**Approach**: When images are attached, save them to `.cc4d/uploads/` in the project dir, append file paths to the prompt so Claude's `Read` tool processes them (works because `--dangerously-skip-permissions` is enabled), and display thumbnails in the chat UI.
+
+## Files to Modify
+
+1. **`desktop/src/lib/store.ts`** — Add `ImageAttachment` type and `images?` field to `ChatMessage`
+2. **`desktop/src/components/chat/ChatInput.tsx`** — Add image input (paste, drag-drop, hidden file input), preview strip, wire through `onSend`
+3. **`desktop/src/components/chat/ChatPanel.tsx`** — Thread `images` through `onSend` signature
+4. **`desktop/src/app/build/page.tsx`** — Thread `images` through `sendToAgent` and `handleSend`
+5. **`desktop/src/lib/agent-client.ts`** — Add `images` to `connectToAgent` options and POST body
+6. **`desktop/src/app/api/agent/route.ts`** — Write images to disk, include file paths in prompt
+7. **`desktop/src/components/chat/UserMessage.tsx`** — Render attached images
+8. **`desktop/src/components/chat/ActivityBlockView.tsx`** — Pass `images` to `UserMessage`
+9. **`desktop/messages/en.json`** + **`desktop/messages/he.json`** — Add image-related i18n strings
+10. **`desktop/next.config.ts`** — Increase body size limit for image uploads
+
+## Implementation Steps
+
+### 1. Data Model (`store.ts`)
+
+Add to the file:
+```ts
+export interface ImageAttachment {
+  id: string;
+  filename: string;
+  mimeType: string;
+  base64: string;       // for display in chat as data URL
+  sizeBytes: number;
+}
+```
+
+Add `images?: ImageAttachment[]` to `ChatMessage`.
+
+### 2. ChatInput — Image UI (`ChatInput.tsx`)
+
+- Add `pendingImages` state: `useState<ImageAttachment[]>([])`
+- Change `onSend` signature to `(message: string, images?: ImageAttachment[]) => void`
+- **Paste handler**: `onPaste` on the `<input>` — check `clipboardData.items` for image types, read via `FileReader.readAsDataURL()`, add to `pendingImages`
+- **Drag and drop**: `onDragOver`/`onDrop` on the form — read dropped image files
+- **File picker**: Replace the Electron `openFileDialog` with a hidden `<input type="file" accept="image/*" multiple>` triggered by the Paperclip button (simpler, no IPC needed for images)
+- **Preview strip**: Below the input, render a horizontal row of 48x48 thumbnails with X buttons to remove
+- **Submit**: Call `onSend(text, pendingImages.length > 0 ? pendingImages : undefined)`, clear both
+- **Allow image-only messages**: Submit should be allowed if there are pending images even without text
+- **Validation**: Max 5MB per image, max 5 images, accept only png/jpeg/gif/webp
+
+### 3. Thread `images` Through the Chain
+
+- **`ChatPanel.tsx`**: Update `onSend` type to include optional images, thread to `ChatInput`
+- **`build/page.tsx`**: Update `sendToAgent` and `handleSend` to accept images, pass to `connectToAgent`, include in the user `ChatMessage` added to store
+
+### 4. Agent Client (`agent-client.ts`)
+
+Add `images?: ImageAttachment[]` to `connectToAgent` options. Include in the `JSON.stringify` body.
+
+### 5. API Route (`route.ts`)
+
+- Extract `images` from request body
+- If images present and `projectDir` exists:
+  - Create `.cc4d/uploads/` dir if missing
+  - Write each image's base64 buffer to a file: `img-<timestamp>-<rand>.<ext>`
+  - Build prompt suffix: `\n\n[The user attached an image. Read it from: /path/to/img.png]`
+  - Append to prompt before localization wrapping
+
+### 6. Next.js Body Size (`next.config.ts`)
+
+Add `experimental.serverActions.bodySizeLimit` or configure the route to handle larger payloads. In Next.js App Router, export a `config` segment or use `req.text()` manually if needed. Target: 30MB limit.
+
+### 7. Display Images in Chat
+
+- **`UserMessage.tsx`**: Accept `images?: ImageAttachment[]` prop, render as `<img src="data:${mimeType};base64,${base64}">` thumbnails above the text
+- **`ActivityBlockView.tsx`**: Pass `msg.images` to `<UserMessage>`
+
+### 8. i18n Strings
+
+Add under `"Attachments"` in both en.json and he.json:
+- `"imageTooBig"` / `"imageTooMany"` / `"unsupportedType"` / `"removeImage"` / `"attachImage"`
+
+## Verification
+
+1. Run `npm run dev` in `desktop/`
+2. Open the build page with an existing project
+3. Test: paste an image from clipboard — should show preview thumbnail
+4. Test: drag and drop an image — should show preview thumbnail
+5. Test: click Paperclip and select image files — should show previews
+6. Test: send message with image — should appear in chat with thumbnail
+7. Test: verify the image file is written to `.cc4d/uploads/` in project dir
+8. Test: verify Claude receives the file path and reads the image
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.claude/projects/-Users-tombensim-code-the-shift-claude-for-dummies/144f2a7b-eeb7-4f13-b663-3ffb7abbd45f.jsonl
+
+---
+
+commit this

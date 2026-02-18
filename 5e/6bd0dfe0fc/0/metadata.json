@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "5e6bd0dfe0fc",
+  "session_id": "fc55540d-fb50-4a1b-bce2-cd43ba16dac0",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T05:30:50.173204Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
+    "desktop/next.config.ts",
+    "desktop/src/app/api/agent/route.ts",
+    "desktop/src/app/build/page.tsx",
+    "desktop/src/components/chat/ActivityBlockView.tsx",
+    "desktop/src/components/chat/ChatInput.tsx",
+    "desktop/src/components/chat/ChatPanel.tsx",
+    "desktop/src/components/chat/UserMessage.tsx",
+    "desktop/src/lib/agent-client.ts",
+    "desktop/src/lib/store.ts"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 38,
+    "cache_creation_tokens": 63043,
+    "cache_read_tokens": 2334034,
+    "output_tokens": 1079,
+    "api_call_count": 34
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T05:30:50.125847Z",
+    "agent_lines": 377,
+    "human_added": 699,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1076,
+    "agent_percentage": 35.03717472118959
+  }
+}
