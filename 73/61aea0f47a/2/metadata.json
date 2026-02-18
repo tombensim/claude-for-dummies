@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "7361aea0f47a",
+  "session_id": "74b6e2e2-c4ee-4b77-96ba-46c858584761",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-18T04:53:23.503467Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "desktop/__tests__/unit/electron/claude-manager.test.ts",
+    "desktop/__tests__/unit/electron/git-manager.test.ts",
+    "desktop/__tests__/unit/electron/node-manager.test.ts",
+    "desktop/__tests__/unit/electron/session.test.ts",
+    "desktop/__tests__/unit/lib/agent-client.test.ts",
+    "desktop/electron/agent/session.ts",
+    "desktop/electron/main.ts",
+    "desktop/electron/preload.ts",
+    "desktop/electron/runtime/claude-manager.ts",
+    "desktop/electron/runtime/git-manager.ts",
+    "desktop/electron/runtime/node-manager.ts",
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
+    "desktop/src/app/build/page.tsx",
+    "desktop/src/app/welcome/page.tsx",
+    "desktop/src/components/chat/ChatPanel.tsx",
+    "desktop/src/components/chat/PlanningHeader.tsx",
+    "desktop/src/components/project/CollapsibleSection.tsx",
+    "desktop/src/lib/agent-client.ts"
+  ],
+  "agent": "Claude Code",
+  "token_usage": {
+    "input_tokens": 40,
+    "cache_creation_tokens": 49958,
+    "cache_read_tokens": 2064911,
+    "output_tokens": 2680,
+    "api_call_count": 36
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-18T04:53:23.473505Z",
+    "agent_lines": 141,
+    "human_added": 550,
+    "human_modified": 52,
+    "human_removed": 0,
+    "total_committed": 743,
+    "agent_percentage": 18.977119784656796
+  }
+}

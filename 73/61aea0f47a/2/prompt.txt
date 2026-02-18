@@ -1,0 +1,90 @@
+Implement the following plan:
+
+# Planning Session Feature
+
+## Context
+
+When starting a new project, the build page immediately fires off the initial agent prompt and the agent starts building. There's no "getting to know you" phase. Additionally, the Claude CLI stream-json format sends **cumulative** assistant events, causing the same AskUserQuestion tool_use block to be processed multiple times — resulting in duplicate question cards (visible in the screenshot: same question rendered 4x).
+
+The goal is to introduce a dedicated planning session where the agent warmly greets the user, asks what they want to build, and gathers preferences through adaptive follow-up questions — **before** any building starts.
+
+## Approach: Agent-Driven Planning (re-enable CC4D Steps 2-3)
+
+The CC4D skill already defines Steps 2 (orient) and 3 (gather idea) with exactly the right flow. The desktop app currently **bypasses** them by setting `step=4`. The fix is to let them run, fix the stream dedup bug, and add a visual "planning phase" to the build page.
+
+---
+
+## Changes
+
+### 1. Fix duplicate message bug
+**File:** `desktop/src/lib/agent-client.ts`
+
+The root cause: `parseAgentEvent` iterates ALL content blocks on every cumulative `assistant` event, re-emitting the same messages.
+
+- Add a `skipBlocks` parameter to `parseAgentEvent(raw, locale, callbacks, skipBlocks)` — start the `for` loop at index `skipBlocks` instead of 0
+- In `connectToAgent`, track `lastAssistantBlockCount` — reset to 0 on non-assistant events, update to `content.length` after each assistant event
+- Pass `lastAssistantBlockCount` as `skipBlocks` when calling `parseAgentEvent`
+
+### 2. Re-enable planning steps
+**File:** `desktop/src/app/welcome/page.tsx`
+
+- Change `store.setStep(4, 1)` → `store.setStep(2, 0)` in `handleStartBuilding()` (line 67)
+- Skip `finalizePreferences()` call — the agent will gather & write preferences during step 3
+
+**File:** `desktop/src/app/build/page.tsx`
+
+- Simplify `formatInitialMessage()` to just send a minimal trigger ("Hey! I'm ready to start" / "!היי! אני מוכן/ה להתחיל") — let the CC4D skill handle steps 2-3 naturally
+- The existing `onStepCompleted` callback already updates `currentStep`/`phase` when `progress.sh complete N` runs
+
+### 3. Planning phase UI
+**File (new):** `desktop/src/components/chat/PlanningHeader.tsx`
+
+A warm, centered header above the chat during steps 1-3:
+- Large mascot illustration
+- Title: "Let's plan your project" / "בואו נתכנן את הפרויקט שלכם"
+- Subtitle with current planning step context
+- Fades out with AnimatePresence when step 4 begins
+
+**File:** `desktop/src/components/chat/ChatPanel.tsx`
+
+- Add `isPlanningPhase = useAppStore(s => s.currentStep <= 3)` selector
+- Conditionally render `<PlanningHeader />` above `<ChatHistory />`
+
+### 4. i18n strings
+**Files:** `desktop/messages/en.json` + `desktop/messages/he.json`
+
+Add `Planning` section with: `title`, `subtitle`, `readyToStart`
+
+### 5. Store preferences capture (lightweight)
+When `onStepCompleted(3)` fires, the agent has written preferences to the project's CLAUDE.md. Optionally read them back to populate the store's `vibe`/`audience`/`priority`/`designRef` fields so the ProjectChoicesCard in the drawer works.
+
+---
+
+## Files to modify
+| File | Change |
+|------|--------|
+| `desktop/src/lib/agent-client.ts` | Add `skipBlocks` dedup to `parseAgentEvent` + tracking in `connectToAgent` |
+| `desktop/src/app/welcome/page.tsx` | `setStep(2, 0)`, remove `finalizePreferences` |
+| `desktop/src/app/build/page.tsx` | Simplify `formatInitialMessage`, keep rest as-is |
+| `desktop/src/components/chat/ChatPanel.tsx` | Conditionally render PlanningHeader |
+| `desktop/messages/en.json` | Add Planning i18n keys |
+| `desktop/messages/he.json` | Add Planning i18n keys |
+
+## New files
+| File | Purpose |
+|------|---------|
+| `desktop/src/components/chat/PlanningHeader.tsx` | Visual header for planning phase |
+
+## Verification
+1. Start a new project from welcome page — should see warm greeting + "what do you want to build?" (not instant building)
+2. Answer questions — no duplicate cards, each question appears once
+3. After step 3 completes, planning header fades out, building begins
+4. StepIndicator should show phase transitions correctly
+5. Existing project resume flow should be unaffected (messages restored, no re-trigger)
+
+
+If you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: /Users/tombensim/.REDACTED.jsonl
+
+---
+
+commit thius
