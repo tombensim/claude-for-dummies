@@ -380,8 +380,15 @@ export function connectToAgent(options: {
                 options.onSessionId(parsed.session_id as string);
               }
               // Track block count for dedup: assistant events are cumulative,
-              // so we skip already-processed content blocks
-              const skipBlocks = (parsed.type === "assistant") ? lastAssistantBlockCount : 0;
+              // so we skip already-processed content blocks.
+              // If the new event has FEWER blocks than lastAssistantBlockCount,
+              // it's a new conversation turn (not cumulative) — reset skip to 0.
+              let skipBlocks = 0;
+              if (parsed.type === "assistant") {
+                const content = (parsed.message as Record<string, unknown> | undefined)?.content;
+                const blockCount = Array.isArray(content) ? content.length : 0;
+                skipBlocks = blockCount >= lastAssistantBlockCount ? lastAssistantBlockCount : 0;
+              }
               const { message: msg, activity } = parseAgentEvent(parsed, options.locale, options.callbacks, skipBlocks);
 
               // Update block count after processing
