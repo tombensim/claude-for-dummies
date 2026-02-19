@@ -76,7 +76,8 @@ export default function AssistantMessage({ content }: AssistantMessageProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex gap-3"
+      className="flex gap-3 justify-start"
+      dir="ltr"
     >
       <div className="shrink-0">
         <MascotImage

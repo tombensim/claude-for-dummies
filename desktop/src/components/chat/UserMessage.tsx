@@ -13,7 +13,8 @@ export default function UserMessage({ content, images }: UserMessageProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-row-reverse gap-3"
+      className="flex gap-3 justify-end"
+      dir="ltr"
     >
       <div className="max-w-[80%] rounded-2xl bg-dummy-black px-4 py-3 text-dummy-yellow">
         {images && images.length > 0 && (
