@@ -88,7 +88,7 @@ export default function AssistantMessage({ content }: AssistantMessageProps) {
           className="rounded-full"
         />
       </div>
-      <div className="max-w-[80%] rounded-2xl border-2 border-dummy-black/10 bg-dummy-white px-4 py-3 text-dummy-black shadow-sm">
+      <div className="max-w-[80%] rounded-2xl border-2 border-dummy-black/10 bg-dummy-white px-4 py-3 text-dummy-black shadow-sm" dir="auto">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={markdownComponents}
