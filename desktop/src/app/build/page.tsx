@@ -19,7 +19,6 @@ import ProjectDrawer from "@/components/project/ProjectDrawer";
 import ProjectDrawerToggle from "@/components/project/ProjectDrawerToggle";
 import WorkspaceHeader from "@/components/build/WorkspaceHeader";
 
-import StepIndicator from "@/components/progress/StepIndicator";
 import Logo from "@/components/brand/Logo";
 import LanguageToggle from "@/components/brand/LanguageToggle";
 
@@ -50,6 +49,13 @@ export default function BuildPage() {
   const isWorkspace = store.isWorkspaceMode;
 
   useDebugShortcut();
+
+  // Abort agent stream on unmount to prevent stale callbacks
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   // Persistence
   const { isLoaded } = useChatPersistence(store.projectDir);
@@ -90,7 +96,9 @@ export default function BuildPage() {
   useEffect(() => {
     if (hasStarted.current) return;
     if (!isLoaded) return;
-    if (!store.projectDir) return;
+    // In Electron, wait for projectDir. In browser mode, proceed without it.
+    const isElectron = typeof window !== "undefined" && !!window.electronAPI;
+    if (!store.projectDir && isElectron) return;
     hasStarted.current = true;
 
     // If we have restored messages, show recovery banner and skip initial prompt
@@ -128,8 +136,11 @@ export default function BuildPage() {
 
   const sendToAgent = useCallback(
     (prompt: string, images?: ImageAttachment[]) => {
+      // Read current state at call time (avoids stale closure + constant recreation)
+      const s = useAppStore.getState();
+
       // Add user message to chat
-      store.addMessage({
+      s.addMessage({
         id: `user-${Date.now()}`,
         role: "user",
         content: prompt,
@@ -138,52 +149,55 @@ export default function BuildPage() {
       });
 
       // Hide suggestion chips after first user message
-      if (isWorkspace && store.chipsVisible) {
-        store.hideChips();
+      if (isWorkspace && s.chipsVisible) {
+        s.hideChips();
       }
 
-      store.setStreaming(true);
+      s.setStreaming(true);
 
       abortRef.current = connectToAgent({
         prompt,
         images,
-        locale: store.locale,
-        projectDir: store.projectDir || undefined,
-        sessionId: store.sessionId || undefined,
+        locale: s.locale,
+        projectDir: s.projectDir || undefined,
+        sessionId: s.sessionId || undefined,
         onMessage: (msg) => {
-          store.addMessage(msg);
+          useAppStore.getState().addMessage(msg);
           // Extract milestones for the project activity log
           const milestone = milestoneExtractor.current(msg);
           if (milestone) {
-            store.addMilestone(milestone);
+            useAppStore.getState().addMilestone(milestone);
             // Persist milestones
-            if (store.projectDir) {
+            const currentDir = useAppStore.getState().projectDir;
+            if (currentDir) {
               const allMilestones = [...useAppStore.getState().milestones];
-              window.electronAPI?.saveMilestones?.(store.projectDir, allMilestones).catch(() => {});
+              window.electronAPI?.saveMilestones?.(currentDir, allMilestones).catch(() => {});
             }
           }
         },
         onSessionId: (sessionId) => {
-          store.setSessionId(sessionId);
+          const st = useAppStore.getState();
+          st.setSessionId(sessionId);
           // Persist to electron-store
-          const projectId = store.activeProjectId;
+          const projectId = st.activeProjectId;
           if (projectId) {
             window.electronAPI?.updateProject?.(projectId, { sessionId }).catch(() => {});
           }
         },
         onDone: () => {
-          store.setStreaming(false);
+          useAppStore.getState().setStreaming(false);
         },
         onRawEvent: (raw, timestamp) => {
           useDebugStore.getState().addEvent(raw, timestamp);
         },
-        onError: (err) => {
-          store.setStreaming(false);
-          store.addMessage({
+        onError: () => {
+          const st = useAppStore.getState();
+          st.setStreaming(false);
+          st.addMessage({
             id: `error-${Date.now()}`,
             role: "status",
             content:
-              store.locale === "he"
+              st.locale === "he"
                 ? "אופס. שנייה..."
                 : "Whoops. Give me a sec...",
             timestamp: Date.now(),
@@ -194,7 +208,7 @@ export default function BuildPage() {
             // Poll port 3000 and set preview URL when ready
             window.electronAPI?.pollPort?.(3000).then((ready: boolean) => {
               if (ready) {
-                store.setPreviewUrl("http://localhost:3000");
+                useAppStore.getState().setPreviewUrl("http://localhost:3000");
               }
             });
           },
@@ -202,12 +216,14 @@ export default function BuildPage() {
             setRefreshTrigger((c) => c + 1);
           },
           onStepCompleted: (step) => {
-            store.completeStep(step);
-            store.setStep(step + 1, getPhaseForStep(step + 1));
+            const st = useAppStore.getState();
+            st.completeStep(step);
+            st.setStep(step + 1, getPhaseForStep(step + 1));
           },
           onLiveUrl: (url) => {
-            store.setLiveUrl(url);
-            const projectId = store.activeProjectId;
+            const st = useAppStore.getState();
+            st.setLiveUrl(url);
+            const projectId = st.activeProjectId;
             if (projectId) {
               window.electronAPI?.updateProject?.(projectId, { liveUrl: url }).catch(() => {});
             }
@@ -215,7 +231,7 @@ export default function BuildPage() {
         } satisfies AgentCallbacks,
       });
     },
-    [store, isWorkspace]
+    [isWorkspace]
   );
 
   function handleSend(message: string, images?: ImageAttachment[]) {

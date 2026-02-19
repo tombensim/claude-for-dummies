@@ -9,13 +9,15 @@ interface QuestionCardProps {
 }
 
 export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
-  if (!message.questionData?.questions) return null;
+  const questions = message.questionData?.questions;
+  if (!questions || questions.length === 0) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-4"
+      dir="ltr"
     >
       {message.questionData.questions.map((q, qIdx) => (
         <div key={qIdx} className="card-brand p-4">
