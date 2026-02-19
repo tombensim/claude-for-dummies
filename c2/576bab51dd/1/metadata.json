@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "c2576bab51dd",
+  "session_id": "9692d9b6-4fec-44aa-8013-925019edd633",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T18:13:31.064927Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "desktop/src/components/chat/Message.tsx",
+    "desktop/src/components/chat/TypingIndicator.tsx",
+    "desktop/src/lib/design-tokens.ts"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "6500a85b-aa80-4455-9915-c5f57ad9663e",
+  "token_usage": {
+    "input_tokens": 23,
+    "cache_creation_tokens": 13895,
+    "cache_read_tokens": 470948,
+    "output_tokens": 342,
+    "api_call_count": 15
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T18:13:31.05983Z",
+    "agent_lines": 0,
+    "human_added": 288,
+    "human_modified": 170,
+    "human_removed": 0,
+    "total_committed": 288,
+    "agent_percentage": 0
+  }
+}
