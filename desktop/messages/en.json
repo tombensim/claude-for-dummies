@@ -140,7 +140,7 @@
     "removeImage": "Remove image"
   },
   "ProjectPanel": {
-    "title": "Your project",
+    "title": "Your project 🏗️",
     "close": "Close",
     "choices": "Your choices",
     "style": "Style",
@@ -149,7 +149,7 @@
     "designRef": "Design reference",
     "surpriseMe": "Surprise me!",
     "timeline": "Progress",
-    "activityLog": "What happened",
+    "activityLog": "What happened here",
     "openFolder": "Open project folder",
     "visitSite": "Visit my site",
     "newProject": "New project",
@@ -186,14 +186,14 @@
     "notConnected": "Not connected",
     "connect": "Connect",
     "checkingAuth": "Checking...",
-    "envVars": "Environment variables",
-    "addVariable": "Add variable",
-    "keyPlaceholder": "KEY",
-    "valuePlaceholder": "value",
+    "envVars": "Secrets 🤫",
+    "addVariable": "Add secret",
+    "keyPlaceholder": "SECRET_NAME",
+    "valuePlaceholder": "shhh...",
     "showValue": "Show",
     "hideValue": "Hide",
-    "notes": "Notes",
-    "notesPlaceholder": "Write notes about your project...",
+    "notes": "Notebook",
+    "notesPlaceholder": "Jot down whatever you want...",
     "connectGithubPrompt": "Help me connect my GitHub account so I can save my project code",
     "connectVercelPrompt": "Help me connect my Vercel account so I can publish my site"
   }

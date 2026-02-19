@@ -50,7 +50,7 @@ export default function ProjectDrawer() {
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b-2 border-dummy-black/10 px-4 py-3">
-              <h2 className="text-sm font-bold text-dummy-black">
+              <h2 className="text-base text-dummy-black font-display">
                 {t("title")}
               </h2>
               <button

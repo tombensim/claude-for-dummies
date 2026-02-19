@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 interface CollapsibleSectionProps {
   title: string;
@@ -16,6 +17,10 @@ export default function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const locale = useAppStore((s) => s.locale);
+
+  // Use the playful handwritten font for Hebrew, display font for English
+  const fontClass = locale === "he" ? "font-hand" : "font-display";
 
   return (
     <div className="px-4 py-2">
@@ -23,7 +28,7 @@ export default function CollapsibleSection({
         onClick={() => setIsOpen((o) => !o)}
         className="flex w-full items-center justify-between py-1"
       >
-        <h4 className="text-xs font-bold uppercase tracking-wider text-dummy-black/50">
+        <h4 className={`text-sm tracking-wide text-dummy-black/60 ${fontClass}`}>
           {title}
         </h4>
         <motion.span
