@@ -1,0 +1,105 @@
+ID,Name,Email,Profile URL,Category,Title,Description,GitHub,AI Tools,AI Tools Other,Demo Plan,Media Links,Status,Created At
+"f5a1fa2a-89e3-4f54-ae60-20bac9ef8585","Roy Shkolnik","roy.shkolnik@gmail.com","https://www.linkedin.com/in/royshkolnik?trk=contact-info","undefined","I asked Claude to do my crypto taxes","I asked Claude to do my crypto taxes. This super interactive process ended up in a slick webpage detailing my entire crypto history, browsable and succinct, with interesting features. The view is decoupled from the data so replicable to everyone (with patience...)
+Claude is able to tell me and show everything i held at a specific point in time, cost basis and tax bill. Along the way it found errors for the company that actually did my taxes... ","","Claude Code","","* problem
+* Who solves it today and how does it look
+* Initial exploration
+* Final ""product"" (with pii removed, also by claude)
+* Sample prompts and terminal screenshots from the conversation","","pending","2026-02-16T19:27:09.920Z"
+"712ea30b-0037-49b4-87eb-39635ab3af3f","Tadasa zallka ","tadasa2227@gmail.com","https://www.linkedin.com/in/tadasa-zallka-4b40b01b9/","undefined","System Design + Claude code = זאת השיטה ","סוכן לניהול העסק הוצאות והכנסות - בעצם מערכת ועוזר אישי לניהול פננסים של העסק ","","Claude Code","","זה כבר בנוי - https://masterbill.biz/","","pending","2026-02-16T17:40:54.994Z"
+"ca246493-fd1e-4dd5-b465-b1a46ae39b60","Elyasaf","elyasaf.ar@gmail.com","https://www.linkedin.com/in/elyasaf-arieli-02040998/","undefined","Balanced news website","The system, of which the website is the front
+Collects the news headlines.
+Performs a full online collection using AI on all aspects of the story/topic
+
+Rewrites a balanced article without bias","","Cursor; Claude Code","","In the demo program
+I will explain the rationale - the news we consume is biased.
+You can see this in a thousand recurring topics.
+It creates hatred and polarization that we really don't have the resources to maintain
+
+The purpose of the site is to show that after cleaning up the biases, in the end most of us agree very much. And the gaps are very small","https://news-balance-analyzer-production.up.railway.app
+
+The site is currently down.
+I will bring it back up for the demo
+","pending","2026-02-16T16:09:10.222Z"
+"d1ce803b-7d5a-4eba-aabb-752ea6bb75b6","Lior Kupfer","lior.kupfer@gmail.com","https://www.linkedin.com/in/lior-kupfer-369abb200","undefined","Tabbers - Teaching guitar with AI","The problem - producing viral and/or educational guitar playing content is a complicated process that requires syncing audio and video recordings, transcribing notes and chords, and visualize them as overlays on a final edit. Tabbers moto is “you just play, we do the rest” - it’s an all-in-one editor allowing the guitar creators focus on playing and let AI do the hard work. It brings to front a rich combination of existing and fine-tuned models, and was built with cursor and Claude code without manual coding! ","","Claude Code; Cursor","","Show a live creation of a viral guitar video and upload it to TikTok, all within 7-minutes","https://www.tiktok.com/@tabbers.ai?_r=1&_t=ZT-93yPF63ygRC","pending","2026-02-16T16:06:35.690Z"
+"b6ea5fd3-4e11-4ba6-979b-593f92ddd1ef","Eilon Levy","eilon2300@gmail.com","https://x.com/levyeilon","undefined","LedgerCore","LedgerCore allows organizations to track their blockchain transactions, wallets, and exchanges.","","Claude Code","","I only need a few minutes. Basically I will speak a bit about why this product is necessary for crypto funds and teams, and will showcase all of its features.
+
+The investigation feature is very impressive so FYI.","Don’t have any. Thanks.","pending","2026-02-16T15:41:58.967Z"
+"02c083d5-bac9-4560-b651-4ee804c17118","Sagi Rosenthal","mrsagi.rose@gmail.com","https://www.linkedin.com/in/sagi-rosenthal","undefined","The first AI wrong podcast","What if we ask chatGPT about historical events, but tell it to reply with wrong answers only?
+This is what we do in “taut historit”
+
+Usually model hallucinations are considered problems and issue, but in our case this is the expected behavior. 
+
+We created a humorous Podcast where we respond to chatGPT wrong answers.","","Other","ChatGPT","Generally introduce what we learned from the wrong perspective of the chat and show funny parts from the podcast","https://linktr.ee/taut_historit","pending","2026-02-16T15:02:47.152Z"
+"190bbbf9-98ed-4397-b1ce-eb7265878eaf","Nina Ezushin","ninaez1510@gmail.com","https://linkedin.com/in/ninaezushin","undefined","Founder Shelf – The Curated Library Every Founder Should Read","Founder Shelf is a curated, AI-powered reading library built specifically for founders.
+Instead of generic book lists, it structures must-read books into a living, categorized knowledge base — entrepreneurship, product, psychology, finance, negotiation, and more.
+
+The problem: founders consume tons of information, but it’s scattered, unstructured, and hard to navigate. There’s no centralized, opinionated, founder-first library.
+
+The solution: a structured, searchable platform that aggregates, categorizes, and enriches books using AI — including smart tagging, cover retrieval, metadata cleaning, and scalable book ingestion workflows.
+
+It’s built for early-stage founders, operators, and ambitious builders who treat reading as strategic leverage.","","Lovable","","1.	Problem framing (1 min)
+Founders rely heavily on reading, yet book recommendations are scattered, inconsistent, and unstructured — especially across Hebrew and English sources.
+	2.	System overview (1 min)
+Quick look at Founder Shelf — an AI-powered, structured reading platform built with Lovable and AI-assisted enrichment workflows.
+	3.	Book ingestion flow (2–3 min)
+I’ll demonstrate how adding a book triggers:
+
+	•	AI-assisted metadata retrieval
+	•	Cover detection & validation
+	•	Normalization of inconsistent data
+	•	Automatic categorization
+
+	4.	Search & structure highlight (1–2 min)
+Showing:
+
+	•	Hebrew search handling
+	•	Clean categorization
+	•	Structured filtering
+
+	5.	Behind-the-scenes architecture (1 min)
+Brief explanation of the AI-assisted scraping pipeline, metadata enrichment logic, and categorization system.
+	6.	Closing vision (30 sec)
+Positioning Founder Shelf as a scalable knowledge infrastructure for founders.","Founder Shelf is in final polishing phase.
+Demo recording is scheduled and will be shared in the coming days.","pending","2026-02-16T14:33:19.376Z"
+"5be7500b-6fdf-4357-879d-dcbc9e52133c","Marina Kidron","marina.kidron@gmail.com","https://www.linkedin.com/in/marinakidron/","undefined","CEO and Co-founder, Togeder","CEO and Co-founder, Togeder
+","","Cursor; Bolt; Lovable","","Analyze group meeting transcript (using AI), to identify alerts that requires attention in real time. and offline - to provide a deeper analysis report. ","","pending","2026-02-16T12:24:43.590Z"
+"402eff44-0922-40b9-8654-987375d26a0d","Tomer Balan","tomerbalan@gmail.com","https://www.linkedin.com/in/tomerbal","undefined","Find and match clinical trials for patients using AI","Hi,
+My name is Tomer Balan, and I'm a software engineer with 10 years of experience specializing in web scraping.
+
+My mom was diagnosed with advanced colon cancer in January 2023. A few weeks ago, I started exploring clinical trial options. I realized that searching is challenging for people outside the healthcare industry, so I developed an AI-based service to make the process easier.
+
+The service finds relevant clinical trials worldwide for oncology patients based on a medical summary in PDF format. The service receives the patient’s medical summary and test results, searches for and displays clinical trials ranked by relevance, and displays the results.","","Other","base44, OpenRouter, ChatGPT, Claude","Walkthrough the problem and the solution. Talk a bit about the gap in scraping and LLMs","https://drive.google.com/file/d/1KjW8qqSJnkr1KQkVKZ9YWkFh23z6eQai/view?usp=sharing","pending","2026-02-15T20:30:15.753Z"
+"bf115944-2b6a-45f9-b90a-193212b43c47","Shem Magnezi","smagnezi8@gmail.com","https://www.linkedin.com/in/shem-magnezi/","undefined","The Self-Driving Company: From First Prompt to First Sale in One Week","This talk details the orchestration of a ""self-driving"" company where autonomous agents manage the full business lifecycle, from initial strategy to final sales. I describe the transition from manual builder to orchestrator, managing a virtual team that includes a CEO for vision and a Project Manager to enforce task-status workflows. We will explore the mechanics of autonomous innovation, where agents are granted permissions to handle deployments, API integrations, and growth hacking . This session provides a blueprint for the ""Agentic Era,"" showing how to leverage multi-agent systems to drastically compress traditional business timelines.","","Claude Code","","1. Agent Org Chart Present the team of specialized AI agents acting as a virtual board of directors.
+
+2. Strategy and Oversight Show the CEO agent defining the strategic vision and making final business decisions.
+
+3. Project Management Dashboard Demonstrate the project dashboard that tracks task status and manages agent coordination.
+
+4. Autonomous Infrastructure Display agents operating with high-level permissions to configure production environments and API keys.
+
+5. Self-Correcting Build Highlight technical agents resolving blockers and handling deployments without human intervention.
+
+6. Launch and Orchestration Reveal the live, revenue-generating product as the culmination of an autonomous orchestrator workflow.
+
+7. Automated Growth Showcase marketing agents autonomously generating SEO strategies and growth hacking campaigns.","https://parkautopilot.com/
+https://www.geektime.co.il/park-autopilot-is-your-vibe-coding-copilot-in-disney-world-park/
+https://x.com/shemag8/status/2010285784621101340","pending","2026-02-15T19:16:49.043Z"
+"61590633-269d-4cee-b82a-a40997deb9c3","Nir Simionovich","nirs@cloudonix.io","https://www.linkedin.com/in/nir-simionovich","undefined","OPBX - An AI First Approach to Business Communications","OPBX is an Open Source project I created to help business do-more with the AI Voice Agents. Ranging from enhanced voice agent security, through AI Voice Agent fault tolerance and load balancing - OPBX is a complete business solution, leveraging 15 different AI Voice Agent platforms. OPBX is designed as a ""developer boiler-plate"", published will all of its build prompts, making it easier for other people to add new features and more.","https://github.com/greenfieldtech-nirs/opbx","Claude Code; Antigravity; Other","OpenCode, MiniMax 2.1, Kimi 2.5, Grok Code Fast 1","During the demo, I'll demonstrate how OPBX can provide business continuity when a voice agent platform is unable to provide services. In addition, we'll demo how to use built-in TTS capabilities, to compliment the AI Voice Agents and more.","No media link - need to prepare one :-)","pending","2026-02-15T18:31:42.509Z"
+"7d607c59-edbf-4ab8-8825-920f0f6d227a","Beni hakak","beni@a5c.ai","https://linkedin.com/in/benihakak","undefined","Babysitter","Babysitter is an orchestration framework for Claude Code that enables deterministic, event-sourced workflow management. It allows you to build complex, multi-step development processes with built-in quality gates, human approval checkpoints, and automatic iteration until quality targets are met. Babysitter works seamlessly with your existing subagents, skills, and tools, orchestrating them into sophisticated workflows.","https://github.com/a5c-ai/babysitter","Claude Code","","Talk about the new concept of the two loops architecture we believe, talk about babysitter and why it works so well, even compared to Claude code alone or Ralph loops and showcase a few examples after having the agents run for days unattended ","","pending","2026-02-15T17:04:50.701Z"
+"7daa4a6d-852b-4029-a11d-48e0d9d59568","Yosi","yosi+1@taguri.com","https://www.linkedin.com/in/tom-bensimhon-15801025/","Burden Bearers","this is the presnetaiotn","this is the problamen seagds 
+gdflkshfglkdsfghjds","","v0","","gdsklfjhdslkfs
+
+fdsfdsfdsfds","","rejected","2026-02-15T08:42:46.049Z"
+"08fa1a6f-4698-49f9-a4f1-e9d35eeef130","Ilana chernenko","ilana.chernenko@lemonade.com","https://www.linkedin.com/in/ilana-chernenko/","Burden Bearers","XXX","XXXXXXXXXXXXXXXXXXXX","","Cursor","","XXXXXXXXXXXXXXXXXXXX","","approved","2026-02-12T10:03:52.595Z"
+"baaabd68-804a-46d6-986c-3ec5cad7e39d","Yosi Taguri","yosi@taguri.com","https://x.com/yosit","Vibe Coders","What will we do next?","How everyone is going to lose their jobs in the next 12 months.","","Claude Code","","Love it
+Love it
+Love it
+Love it
+Love it
+Love it
+Love it
+Love it
+
+","","rejected","2026-02-12T02:08:05.766Z"
+"375d1246-46ac-4222-afb0-8fa10300b5ee","Michael","livsmichael@gmail.com","https://www.linkedin.com/in/michael-livshits-6aa501bb/","Software 3.0","Presentation","These are at least 20 charts long","","Claude Code","Junie","Stumble and fall and maybe recover","","approved","2026-02-11T21:12:41.925Z"
+"3eac45e9-e71b-448b-a113-cfa78f61d6cd","Tom Bensimhon","tombensim@gmail.com","https://x.com/tombensim","Burden Bearers","orient","this is my project description ","","Claude Code","","Yes, this is the demo plan that I have","","approved","2026-02-11T19:52:53.658Z"

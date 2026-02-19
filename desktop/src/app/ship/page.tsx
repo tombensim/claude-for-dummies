@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { motion, AnimatePresence } from "framer-motion";
+import { LazyMotion, domAnimation, m, AnimatePresence } from "framer-motion";
 import { Rocket, Loader2, Check } from "lucide-react";
 import MascotImage from "@/components/brand/MascotImage";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ type DeployStep =
   | "ready"
   | "saving"
   | "publishing"
-  | "almost"
   | "done";
 
 export default function ShipPage() {
@@ -24,6 +23,17 @@ export default function ShipPage() {
   const store = useAppStore();
   const [deployStep, setDeployStep] = useState<DeployStep>("ready");
   const doneRef = useRef(false);
+  const abortRef = useRef<{ abort: () => void } | null>(null);
+  const mountedRef = useRef(true);
+
+  // Abort agent stream on unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
 
   function handleShip() {
     setDeployStep("saving");
@@ -32,7 +42,7 @@ export default function ShipPage() {
       ? "שלח את האתר שלי לאינטרנט!"
       : "Ship it! Put my site on the internet.";
 
-    connectToAgent({
+    abortRef.current = connectToAgent({
       prompt: shipPrompt,
       locale: store.locale,
       projectDir: store.projectDir || undefined,
@@ -46,18 +56,20 @@ export default function ShipPage() {
         }
       },
       onDone: () => {
+        if (!mountedRef.current) return;
         // If we haven't found a URL by the time the stream ends, move to done anyway
         if (!doneRef.current) {
           doneRef.current = true;
           setDeployStep("done");
-          setTimeout(() => router.push("/done"), 1500);
+          setTimeout(() => { if (mountedRef.current) router.push("/done"); }, 1500);
         }
       },
       onError: () => {
+        if (!mountedRef.current) return;
         if (!doneRef.current) {
           doneRef.current = true;
           setDeployStep("done");
-          setTimeout(() => router.push("/done"), 1500);
+          setTimeout(() => { if (mountedRef.current) router.push("/done"); }, 1500);
         }
       },
       callbacks: {
@@ -76,15 +88,17 @@ export default function ShipPage() {
           }
 
           doneRef.current = true;
-          setDeployStep("done");
-          setTimeout(() => router.push("/done"), 1500);
+          if (mountedRef.current) {
+            setDeployStep("done");
+            setTimeout(() => { if (mountedRef.current) router.push("/done"); }, 1500);
+          }
         },
         onDevServerDetected: () => {
-          // During deploy, git push → "saving", vercel → "publishing"
-          setDeployStep("publishing");
+          if (mountedRef.current) setDeployStep("publishing");
         },
       },
       onRawEvent: (raw) => {
+        if (!mountedRef.current) return;
         // Drive the staged UI from real stream events
         const type = raw.type as string;
         if (type === "assistant") {
@@ -115,14 +129,14 @@ export default function ShipPage() {
     ready: "",
     saving: t("saving"),
     publishing: t("publishing"),
-    almost: t("almostLive"),
     done: t("yourSiteIsLive"),
   };
 
   return (
+    <LazyMotion features={domAnimation}>
     <div className="flex min-h-screen flex-col items-center justify-center bg-dummy-yellow p-8">
       {/* Mascot */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="mb-8"
@@ -134,11 +148,11 @@ export default function ShipPage() {
           height={200}
           className="rotate-2"
         />
-      </motion.div>
+      </m.div>
 
       <AnimatePresence mode="wait">
         {deployStep === "ready" ? (
-          <motion.div
+          <m.div
             key="ready"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -168,9 +182,9 @@ export default function ShipPage() {
                 {t("keepWorking")}
               </Button>
             </div>
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.div
+          <m.div
             key="deploying"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -178,20 +192,20 @@ export default function ShipPage() {
           >
             <div className="card-brand space-y-4 p-6">
               {(
-                ["saving", "publishing", "almost", "done"] as const
+                ["saving", "publishing", "done"] as const
               ).map((step) => {
                 const isActive = deployStep === step;
                 const isDone =
-                  ["saving", "publishing", "almost", "done"].indexOf(
+                  ["saving", "publishing", "done"].indexOf(
                     deployStep
                   ) >
-                  ["saving", "publishing", "almost", "done"].indexOf(step);
+                  ["saving", "publishing", "done"].indexOf(step);
 
                 if (
                   !isDone &&
                   !isActive &&
-                  ["saving", "publishing", "almost", "done"].indexOf(step) >
-                    ["saving", "publishing", "almost", "done"].indexOf(
+                  ["saving", "publishing", "done"].indexOf(step) >
+                    ["saving", "publishing", "done"].indexOf(
                       deployStep
                     )
                 ) {
@@ -199,7 +213,7 @@ export default function ShipPage() {
                 }
 
                 return (
-                  <motion.div
+                  <m.div
                     key={step}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -221,13 +235,14 @@ export default function ShipPage() {
                     >
                       {deployMessages[step]}
                     </span>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
+    </LazyMotion>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Monitor, Smartphone, RefreshCw } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -15,7 +15,6 @@ export default function LivePreview({ refreshTrigger }: LivePreviewProps) {
   const previewMode = useAppStore((s) => s.previewMode);
   const setPreviewMode = useAppStore((s) => s.setPreviewMode);
   const webviewRef = useRef<HTMLWebViewElement>(null);
-  const [loading, setLoading] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-refresh when refreshTrigger changes
@@ -88,7 +87,6 @@ export default function LivePreview({ refreshTrigger }: LivePreviewProps) {
               ref={webviewRef as unknown as React.Ref<HTMLIFrameElement>}
               src={previewUrl}
               className="h-full w-full"
-              onLoad={() => setLoading(false)}
               title="Preview"
             />
           ) : (

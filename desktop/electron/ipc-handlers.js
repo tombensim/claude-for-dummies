@@ -194,6 +194,17 @@ function setupIPC() {
     return projectStore.getActiveProject();
   });
 
+  ipcMain.handle("project:remove", (_event, id) => {
+    const project = projectStore.getProject(id);
+    if (!project) {
+      log.warn("[project] Remove failed — not found:", id);
+      return false;
+    }
+    projectStore.removeProject(id);
+    log.info("[project] Removed", project.name, "(id:", id + ")");
+    return true;
+  });
+
   // --- Chat history persistence ---
 
   ipcMain.handle("chat:load", async (_event, projectPath) => {

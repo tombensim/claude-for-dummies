@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
-import { Globe, HardDrive, Loader2, Rocket, Sparkles } from "lucide-react";
+import { LazyMotion, domAnimation, m } from "framer-motion";
+import { Globe, HardDrive, Loader2, Rocket, Sparkles, Trash2 } from "lucide-react";
 import MascotImage from "@/components/brand/MascotImage";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type ProjectMeta } from "@/lib/store";
@@ -54,6 +54,7 @@ export default function WelcomePage() {
 
   const [recentProjects, setRecentProjects] = useState<ProjectMeta[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const hasProjects = recentProjects.length > 0;
 
@@ -87,6 +88,18 @@ export default function WelcomePage() {
     router.push("/build");
   }
 
+  async function handleDeleteProject(id: string) {
+    try {
+      const ok = await window.electronAPI?.removeProject?.(id);
+      if (ok) {
+        setRecentProjects((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch (err) {
+      console.error("[welcome] Project delete failed:", err);
+    }
+    setConfirmDeleteId(null);
+  }
+
   async function handleProjectSwitch(project: ProjectMeta) {
     try {
       const meta = await window.electronAPI?.switchProject?.(project.id);
@@ -102,9 +115,10 @@ export default function WelcomePage() {
   }
 
   return (
+    <LazyMotion features={domAnimation}>
     <div className="flex min-h-screen flex-col items-center justify-center bg-dummy-yellow p-8">
       {/* Mascot */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
@@ -117,10 +131,10 @@ export default function WelcomePage() {
           height={hasProjects ? 120 : 180}
           className="rotate-2"
         />
-      </motion.div>
+      </m.div>
 
       {/* Content */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-lg text-center"
@@ -139,26 +153,64 @@ export default function WelcomePage() {
               </p>
               <div className="flex flex-col gap-2">
                 {recentProjects.map((project, i) => (
-                  <motion.button
+                  <m.div
                     key={project.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={() => handleProjectSwitch(project)}
-                    className="flex items-center justify-between rounded-xl border-2 border-dummy-black/20 bg-dummy-white px-4 py-3 text-start transition-all hover:border-dummy-black hover:shadow-[4px_4px_0_0_#1A1A1A]"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-dummy-black">
-                        {project.displayName || project.name}
-                      </p>
-                      <p className="text-xs text-dummy-black/50">
-                        {relativeTime(project.lastOpenedAt, tp)}
-                      </p>
-                    </div>
-                    <ProjectStatusBadge project={project} t={t} />
-                  </motion.button>
+                    {confirmDeleteId === project.id ? (
+                      <div className="rounded-xl border-2 border-red-400 bg-dummy-white px-4 py-3">
+                        <p className="mb-2 text-sm text-dummy-black">
+                          {t("deleteConfirm", { name: project.displayName || project.name })}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="rounded-lg border border-dummy-black/20 px-3 py-1 text-xs font-bold text-dummy-black transition-colors hover:bg-dummy-black/5"
+                          >
+                            {t("deleteCancel")}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(project.id)}
+                            className="rounded-lg bg-red-500 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-red-600"
+                          >
+                            {t("deleteConfirmButton")}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="group relative">
+                        <m.button
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          onClick={() => handleProjectSwitch(project)}
+                          className="flex w-full items-center justify-between rounded-xl border-2 border-dummy-black/20 bg-dummy-white px-4 py-3 text-start transition-all hover:border-dummy-black hover:shadow-[4px_4px_0_0_#1A1A1A]"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-bold text-dummy-black">
+                              {project.displayName || project.name}
+                            </p>
+                            <p className="text-xs text-dummy-black/50">
+                              {relativeTime(project.lastOpenedAt, tp)}
+                            </p>
+                          </div>
+                          <ProjectStatusBadge project={project} t={t} />
+                        </m.button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteId(project.id);
+                          }}
+                          className="absolute end-12 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-dummy-black/0 transition-colors group-hover:text-dummy-black/30 hover:!text-red-500 hover:!bg-red-50"
+                          aria-label={t("deleteProject")}
+                          title={t("deleteProject")}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </m.div>
                 ))}
               </div>
             </div>
@@ -197,7 +249,8 @@ export default function WelcomePage() {
             </Button>
           </>
         )}
-      </motion.div>
+      </m.div>
     </div>
+    </LazyMotion>
   );
 }

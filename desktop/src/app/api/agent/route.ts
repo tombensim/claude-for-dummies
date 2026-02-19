@@ -108,117 +108,146 @@ export async function POST(req: NextRequest) {
 
   const stream = new ReadableStream({
     start(controller) {
-      agentLog.info(`[${requestId}] Spawning claude`, {
-        binary: claudePath,
-        args: args.slice(0, -1), // exclude prompt
-      });
+      function spawnClaude(spawnArgs: string[], isRetry = false) {
+        agentLog.info(`[${requestId}] Spawning claude${isRetry ? " (retry without resume)" : ""}`, {
+          binary: claudePath,
+          args: spawnArgs.slice(0, -1), // exclude prompt
+        });
 
-      const child = spawn(claudePath, args, {
-        cwd: projectDir || process.cwd(),
-        env,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+        const child = spawn(claudePath, spawnArgs, {
+          cwd: projectDir || process.cwd(),
+          env,
+          stdio: ["ignore", "pipe", "pipe"],
+        });
 
-      const childPid = child.pid;
-      agentLog.info(`[${requestId}] Claude process started`, { pid: childPid });
+        const childPid = child.pid;
+        agentLog.info(`[${requestId}] Claude process started`, { pid: childPid });
 
-      let buffer = "";
-      let messageCount = 0;
+        let buffer = "";
+        let messageCount = 0;
+        let resumeFailed = false;
 
-      child.stdout!.on("data", (data: Buffer) => {
-        buffer += data.toString();
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        child.stdout!.on("data", (data: Buffer) => {
+          buffer += data.toString();
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
 
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const parsed = JSON.parse(line);
-            messageCount++;
-            debugLog.debug(`[${requestId}] raw`, parsed);
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const parsed = JSON.parse(line);
+              messageCount++;
+              debugLog.debug(`[${requestId}] raw`, parsed);
 
-            // Log message type and key info (not full payload — too large)
-            const logEntry: Record<string, unknown> = {
-              type: parsed.type,
-              seq: messageCount,
-            };
-            if (parsed.type === "assistant" && parsed.message?.content) {
-              const content = parsed.message.content;
-              if (Array.isArray(content)) {
-                logEntry.blocks = content.map((b: Record<string, unknown>) => {
-                  if (b.type === "text") return { type: "text", length: (b.text as string)?.length };
-                  if (b.type === "tool_use") return { type: "tool_use", name: b.name };
-                  return { type: b.type };
-                });
+              // Detect stale session resume failure: result with error
+              // on the very first message, 0 turns — don't forward to client
+              if (
+                !isRetry &&
+                sessionId &&
+                parsed.type === "result" &&
+                parsed.subtype === "error_during_execution" &&
+                parsed.num_turns === 0
+              ) {
+                agentLog.warn(`[${requestId}] Resume failed, will retry fresh`);
+                resumeFailed = true;
+                return; // don't send this error to the client
               }
-            }
-            if (parsed.type === "result") {
-              logEntry.subtype = parsed.subtype;
-              logEntry.duration_ms = parsed.duration_ms;
-              logEntry.num_turns = parsed.num_turns;
-              logEntry.cost_usd = parsed.total_cost_usd;
-              logEntry.session_id = parsed.session_id;
-            }
-            agentLog.debug(`[${requestId}] SSE event`, logEntry);
 
-            controller.enqueue(encoder.encode(`data: ${line}\n\n`));
-          } catch {
-            agentLog.warn(`[${requestId}] Non-JSON stdout line`, {
-              preview: line.slice(0, 200),
-            });
+              // Log message type and key info (not full payload — too large)
+              const logEntry: Record<string, unknown> = {
+                type: parsed.type,
+                seq: messageCount,
+              };
+              if (parsed.type === "assistant" && parsed.message?.content) {
+                const content = parsed.message.content;
+                if (Array.isArray(content)) {
+                  logEntry.blocks = content.map((b: Record<string, unknown>) => {
+                    if (b.type === "text") return { type: "text", length: (b.text as string)?.length };
+                    if (b.type === "tool_use") return { type: "tool_use", name: b.name };
+                    return { type: b.type };
+                  });
+                }
+              }
+              if (parsed.type === "result") {
+                logEntry.subtype = parsed.subtype;
+                logEntry.duration_ms = parsed.duration_ms;
+                logEntry.num_turns = parsed.num_turns;
+                logEntry.cost_usd = parsed.total_cost_usd;
+                logEntry.session_id = parsed.session_id;
+              }
+              agentLog.debug(`[${requestId}] SSE event`, logEntry);
+
+              controller.enqueue(encoder.encode(`data: ${line}\n\n`));
+            } catch {
+              agentLog.warn(`[${requestId}] Non-JSON stdout line`, {
+                preview: line.slice(0, 200),
+              });
+            }
           }
-        }
-      });
+        });
 
-      child.stderr!.on("data", (data: Buffer) => {
-        const text = data.toString().trim();
-        if (!text) return;
-        agentLog.warn(`[${requestId}] Claude stderr`, { text: text.slice(0, 500) });
-        if (text.includes("Error") || text.includes("error")) {
+        child.stderr!.on("data", (data: Buffer) => {
+          const text = data.toString().trim();
+          if (!text) return;
+          agentLog.warn(`[${requestId}] Claude stderr`, { text: text.slice(0, 500) });
+          if (text.includes("Error") || text.includes("error")) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "error", content: text })}\n\n`
+              )
+            );
+          }
+        });
+
+        child.on("error", (err) => {
+          agentLog.error(`[${requestId}] Spawn error`, { error: err.message });
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ type: "error", content: text })}\n\n`
+              `data: ${JSON.stringify({ type: "error", content: err.message })}\n\n`
             )
           );
-        }
-      });
-
-      child.on("error", (err) => {
-        agentLog.error(`[${requestId}] Spawn error`, { error: err.message });
-        controller.enqueue(
-          encoder.encode(
-            `data: ${JSON.stringify({ type: "error", content: err.message })}\n\n`
-          )
-        );
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      });
-
-      child.on("close", (code, signal) => {
-        agentLog.info(`[${requestId}] Claude process exited`, {
-          pid: childPid,
-          code,
-          signal,
-          messageCount,
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
         });
-        if (buffer.trim()) {
-          try {
-            JSON.parse(buffer);
-            controller.enqueue(encoder.encode(`data: ${buffer}\n\n`));
-          } catch {
-            // ignore
+
+        child.on("close", (code, signal) => {
+          agentLog.info(`[${requestId}] Claude process exited`, {
+            pid: childPid,
+            code,
+            signal,
+            messageCount,
+          });
+
+          // If resume failed, retry without --resume
+          if (resumeFailed) {
+            const freshArgs = spawnArgs.filter(
+              (a, i, arr) => a !== "--resume" && arr[i - 1] !== "--resume"
+            );
+            spawnClaude(freshArgs, true);
+            return;
           }
-        }
-        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-        controller.close();
-      });
 
-      req.signal.addEventListener("abort", () => {
-        agentLog.info(`[${requestId}] Client disconnected, killing claude`, {
-          pid: childPid,
+          if (buffer.trim()) {
+            try {
+              JSON.parse(buffer);
+              controller.enqueue(encoder.encode(`data: ${buffer}\n\n`));
+            } catch {
+              // ignore
+            }
+          }
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
         });
-        child.kill("SIGTERM");
-      });
+
+        req.signal.addEventListener("abort", () => {
+          agentLog.info(`[${requestId}] Client disconnected, killing claude`, {
+            pid: childPid,
+          });
+          child.kill("SIGTERM");
+        });
+      }
+
+      spawnClaude(args);
     },
   });
 

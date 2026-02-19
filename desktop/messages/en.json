@@ -48,7 +48,11 @@
     "projectReadySub": "We set up a home for your project.",
     "statusLive": "Live",
     "statusLocal": "Local",
-    "statusInProgress": "In Progress"
+    "statusInProgress": "In Progress",
+    "deleteProject": "Delete project",
+    "deleteConfirm": "Delete \"{name}\"? This removes it from the list (files stay on disk).",
+    "deleteCancel": "Cancel",
+    "deleteConfirmButton": "Delete"
   },
   "Build": {
     "building": "Building...",

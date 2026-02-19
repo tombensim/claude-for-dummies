@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "../styles/globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
@@ -31,6 +32,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={isRTL ? "rtl" : "ltr"}>
+      <head>
+        <Script src="/electron-hmr-fix.js" strategy="beforeInteractive" />
+      </head>
       <body className={`${fontClasses} ${bodyFont} antialiased`}>
         <RendererLoggerInit />
         <NextIntlClientProvider messages={messages}>

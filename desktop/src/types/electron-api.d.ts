@@ -25,6 +25,7 @@ declare global {
         updates: Partial<ProjectMeta>
       ) => Promise<ProjectMeta | null>;
       getActiveProject: () => Promise<ProjectMeta | null>;
+      removeProject: (id: string) => Promise<boolean>;
 
       // External links
       openExternal: (url: string) => Promise<void>;

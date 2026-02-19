@@ -48,7 +48,11 @@
     "projectReadySub": "הכנתי מקום לפרויקט שלך.",
     "statusLive": "באוויר",
     "statusLocal": "מקומי",
-    "statusInProgress": "בבנייה"
+    "statusInProgress": "בבנייה",
+    "deleteProject": "מחק פרויקט",
+    "deleteConfirm": "למחוק את \"{name}\"? זה מסיר אותו מהרשימה (הקבצים נשארים בדיסק).",
+    "deleteCancel": "ביטול",
+    "deleteConfirmButton": "מחק"
   },
   "Build": {
     "building": "בונה...",

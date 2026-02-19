@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   updateProject: (id, updates) =>
     ipcRenderer.invoke("project:update", { id, updates }),
   getActiveProject: () => ipcRenderer.invoke("project:get-active"),
+  removeProject: (id) => ipcRenderer.invoke("project:remove", id),
 
   // External links
   openExternal: (url) => ipcRenderer.invoke("shell:open-external", url),
