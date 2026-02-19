@@ -64,7 +64,7 @@ describe("ChatPanel", () => {
     await user.type(input, "Hello world");
     await user.keyboard("{Enter}");
 
-    expect(onSend).toHaveBeenCalledWith("Hello world");
+    expect(onSend).toHaveBeenCalledWith("Hello world", undefined);
   });
 
   it("clears input after submit", async () => {

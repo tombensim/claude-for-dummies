@@ -274,7 +274,7 @@ describe("parseAgentEvent", () => {
     const { message, activity } = parseAgentEvent(raw, "en");
     expect(message).toMatchObject({
       role: "status",
-      content: "Hmm, let me try that again...",
+      content: "Whoops. Give me a sec...",
     });
     expect(activity).toBeNull();
   });
@@ -283,7 +283,7 @@ describe("parseAgentEvent", () => {
     const raw = { type: "result", subtype: "error" };
     const { message } = parseAgentEvent(raw, "he");
     expect(message).toMatchObject({
-      content: "רגע, מנסה שוב...",
+      content: "אופס. שנייה...",
     });
   });
 
@@ -293,7 +293,7 @@ describe("parseAgentEvent", () => {
     const { message, activity } = parseAgentEvent(raw, "en");
     expect(message).toMatchObject({
       role: "status",
-      content: "Hmm, let me try that again...",
+      content: "Whoops. Give me a sec...",
     });
     expect(activity).toBeNull();
   });

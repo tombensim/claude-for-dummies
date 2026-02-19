@@ -16,7 +16,7 @@ export default function UserMessage({ content, images }: UserMessageProps) {
       className="flex gap-3 justify-end"
       dir="ltr"
     >
-      <div className="max-w-[80%] rounded-2xl bg-dummy-black px-4 py-3 text-dummy-yellow" dir="auto">
+      <div className="max-w-[80%] rounded-2xl bg-dummy-black px-4 py-3 text-dummy-yellow overflow-hidden break-words" dir="auto">
         {images && images.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {images.map((img) => (
