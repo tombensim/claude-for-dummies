@@ -9,6 +9,7 @@ import ChatInput from "./ChatInput";
 import ConversationRecoveryBanner from "./ConversationRecoveryBanner";
 import PlanningHeader from "./PlanningHeader";
 import SuggestionChips from "./SuggestionChips";
+import StepIndicator from "@/components/progress/StepIndicator";
 
 interface ChatPanelProps {
   onSend: (message: string, images?: ImageAttachment[]) => void;
@@ -44,6 +45,7 @@ export default function ChatPanel({
         prefill={prefill}
         onPrefillConsumed={() => setPrefill("")}
       />
+      {!isWorkspaceMode && <StepIndicator />}
     </div>
   );
 }

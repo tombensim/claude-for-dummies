@@ -255,7 +255,7 @@ export default function BuildPage() {
             <WorkspaceHeader onBack={handleBack} onDeploy={handleDeploy} />
           </div>
         ) : (
-          <StepIndicator />
+          <div className="no-drag flex-1" />
         )}
 
         <div className="no-drag flex items-center gap-2">
