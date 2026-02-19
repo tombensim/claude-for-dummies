@@ -1,0 +1,8 @@
+# Session Context
+
+## User Prompts
+
+### Prompt 1
+
+we've worked on a feature that allows me to delete projects, I don't see it now, please look at the git log I want to be ablt to delete project
+

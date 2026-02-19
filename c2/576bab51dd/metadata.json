@@ -1,0 +1,34 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "c2576bab51dd",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "desktop/electron/ipc-handlers.js",
+    "desktop/electron/preload.js",
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
+    "desktop/src/app/welcome/page.tsx",
+    "desktop/src/components/chat/Message.tsx",
+    "desktop/src/components/chat/TypingIndicator.tsx",
+    "desktop/src/lib/design-tokens.ts",
+    "desktop/src/types/electron-api.d.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/c2/576bab51dd/0/metadata.json",
+      "transcript": "/c2/576bab51dd/0/full.jsonl",
+      "context": "/c2/576bab51dd/0/context.md",
+      "content_hash": "/c2/576bab51dd/0/content_hash.txt",
+      "prompt": "/c2/576bab51dd/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 36365,
+    "cache_read_tokens": 1031032,
+    "output_tokens": 1316,
+    "api_call_count": 24
+  }
+}

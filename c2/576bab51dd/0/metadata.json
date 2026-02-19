@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "c2576bab51dd",
+  "session_id": "6f4be8ef-4749-4312-8c0d-b8122152a4c0",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-19T18:13:30.932848Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "desktop/electron/ipc-handlers.js",
+    "desktop/electron/preload.js",
+    "desktop/messages/en.json",
+    "desktop/messages/he.json",
+    "desktop/src/app/welcome/page.tsx",
+    "desktop/src/components/chat/Message.tsx",
+    "desktop/src/components/chat/TypingIndicator.tsx",
+    "desktop/src/lib/design-tokens.ts",
+    "desktop/src/types/electron-api.d.ts"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "883a22cf-ca82-4b9a-89d4-aaace6cb7748",
+  "token_usage": {
+    "input_tokens": 26,
+    "cache_creation_tokens": 36365,
+    "cache_read_tokens": 1031032,
+    "output_tokens": 1316,
+    "api_call_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-19T18:13:30.909624Z",
+    "agent_lines": 0,
+    "human_added": 47,
+    "human_modified": 90,
+    "human_removed": 0,
+    "total_committed": 137,
+    "agent_percentage": 0
+  }
+}
