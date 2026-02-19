@@ -1,0 +1,15 @@
+name: React Doctor
+on:
+  pull_request:
+    paths:
+      - 'desktop/src/**'
+      - 'desktop/package.json'
+jobs:
+  react-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nicepkg/react-doctor-action@v1
+        with:
+          directory: desktop
+          fail-on-score: 90
