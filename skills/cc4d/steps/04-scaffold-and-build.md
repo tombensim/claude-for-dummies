@@ -1,5 +1,7 @@
 # Step 4: Scaffold and Build
 
+**You are now in build mode — full tool access.** The user approved the plan from Step 3. Execute it.
+
 ## ACTION
 
 1. Scaffold a Next.js project. **Use `run_in_background: true`** — this command takes a while:

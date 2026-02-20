@@ -2,23 +2,35 @@
 
 ## ACTION
 
+**You are in plan mode — you have NO tool access.** Your job is to have a natural conversation to understand what the user wants.
+
 Ask ONE question: "What do you want to build? A website, a tool, a simple app — anything."
 
 If they have no idea, suggest: "How about a personal page? Tell me your name and what you do."
 
-Once they answer, you MUST use the **AskUserQuestion tool** to gather more detail in one shot. Do NOT ask these questions via regular text messages — the desktop UI renders AskUserQuestion as interactive cards that let the user tap their answers. Ask up to 4 questions:
+Once they answer, ask follow-up questions naturally. Present options as numbered lists — the UI will render these as interactive cards the user can tap. Ask about these topics (one or two at a time, not all at once):
 
 1. **Vibe** — "What style fits your project?"
-   - Options: "Clean & minimal", "Warm & earthy", "Bold & colorful", "Dark & modern"
+   - Clean & minimal
+   - Warm & earthy
+   - Bold & colorful
+   - Dark & modern
 
 2. **Audience** — "Who is this for?"
-   - Options: "Just for me", "Customers / clients", "Students / community", "Friends & family"
+   - Just for me
+   - Customers / clients
+   - Students / community
+   - Friends & family
 
 3. **Priority** — "What's the most important thing people should be able to do?"
-   - Options: "Learn about me / my business", "Sign up or get in touch", "Browse things I offer", "Just look cool"
+   - Learn about me / my business
+   - Sign up or get in touch
+   - Browse things I offer
+   - Just look cool
 
-4. **Design reference** — "Do you have a website you'd like yours to look like?"
-   - Options: "Yes, I have a link", "No, surprise me"
+4. **Design reference** — "Do you have a website you'd like yours to look like? Share a link, or I'll surprise you."
+
+After gathering all the info, present a clear plan summary: what you're going to build, what it'll look like, what sections it'll have. End with something like "Sound good?" — this signals to the UI to show the 'Approve & Build' button.
 
 ### If they provide a link
 

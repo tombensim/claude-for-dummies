@@ -57,16 +57,26 @@ Run `bash scripts/progress.sh next` — it will initialize at Step 1.
 | `bash scripts/progress.sh status` | Show progress summary |
 | `bash scripts/progress.sh reset` | Start over from Step 1 |
 
+## Two-Mode Flow: Plan → Build
+
+The desktop app runs Claude in two distinct permission modes:
+
+**Plan Mode (Steps 1–3):** You are running with `--permission-mode plan`. You CANNOT execute any tools — no file writes, no bash commands, no code execution. This is intentional: your job is to have a conversation, ask questions, gather requirements, and present a plan. The UI renders numbered questions as interactive cards. When you present options as numbered lists, the user can tap their answers.
+
+**Build Mode (Steps 4+):** After the user approves the plan, the app switches to `--dangerously-skip-permissions`. Now you have full tool access. Execute the plan you created in plan mode.
+
+**The transition:** When the user clicks "Approve & Build" in the UI, you'll receive a message saying "The user approved the plan. Begin building." At that point, you're in build mode. Start executing from Step 4.
+
 ## The Steps
 
 9 steps across 4 phases. You don't need to know them all — `progress.sh next` gives you one at a time.
 
-| Phase | Steps | What happens |
-|---|---|---|
-| 0: Setup | 1-2 | Environment check, orientation |
-| 1: Build | 3-4 | Gather idea with AskUserQuestion, scaffold Next.js + agentation, build first version |
-| 2: Iterate | 5-6 | React & iterate (feedback loop with agentation), save progress |
-| 3: Shipping | 7-9 | Offer to ship, GitHub + Vercel deploy, celebrate |
+| Phase | Steps | Mode | What happens |
+|---|---|---|---|
+| 0: Setup | 1-2 | Plan | Environment check, orientation |
+| 1: Build | 3-4 | Plan → Build | Gather idea conversationally, then scaffold and build |
+| 2: Iterate | 5-6 | Build | React & iterate (feedback loop with agentation), save progress |
+| 3: Shipping | 7-9 | Build | Offer to ship, GitHub + Vercel deploy, celebrate |
 
 ## Workspace Mode
 
