@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import type { ChatMessage } from "@/lib/store";
 
@@ -10,6 +11,7 @@ interface QuestionCardProps {
 }
 
 export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
+  const t = useTranslations("Build");
   const questions = message.questionData?.questions;
   const [selections, setSelections] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -45,7 +47,7 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
       className="space-y-4"
     >
       {questions.map((q, qIdx) => (
-        <div key={qIdx} className="card-brand p-4" dir="rtl">
+        <div key={qIdx} className="card-brand p-4" dir="auto">
           <div className="mb-3 flex items-center gap-2">
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dummy-black text-xs font-bold text-dummy-yellow">
               {selections[qIdx] ? "✓" : qIdx + 1}
@@ -61,7 +63,7 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
                   onClick={() => handleSelect(qIdx, opt.label)}
                   disabled={submitted}
                   dir="auto"
-                  className={`rounded-xl border-2 border-dummy-black px-4 py-2 text-sm font-bold transition-all ${
+                  className={`rounded-xl border-2 border-dummy-black px-4 py-2 text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dummy-black ${
                     isSelected
                       ? "bg-dummy-black text-dummy-yellow"
                       : submitted
@@ -82,9 +84,9 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           onClick={handleSubmit}
-          className="w-full rounded-xl border-2 border-dummy-black bg-dummy-black px-6 py-3 text-sm font-bold text-dummy-yellow transition-all hover:bg-dummy-yellow hover:text-dummy-black"
+          className="w-full rounded-xl border-2 border-dummy-black bg-dummy-black px-6 py-3 text-sm font-bold text-dummy-yellow transition-all hover:bg-dummy-yellow hover:text-dummy-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dummy-black"
         >
-          {"המשך →"}
+          {t("continue")}
         </motion.button>
       )}
     </motion.div>

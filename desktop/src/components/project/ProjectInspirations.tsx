@@ -71,7 +71,8 @@ export default function ProjectInspirations() {
               onClick={() =>
                 window.electronAPI?.openExternal?.(designRef)
               }
-              className="shrink-0 text-dummy-black/40 hover:text-dummy-black"
+              className="shrink-0 text-dummy-black/40 hover:text-dummy-black focus-visible:outline-2 focus-visible:outline-dummy-black"
+              aria-label={t("openLink")}
             >
               <ExternalLink className="size-3" />
             </button>
@@ -92,13 +93,15 @@ export default function ProjectInspirations() {
             </span>
             <button
               onClick={() => window.electronAPI?.openExternal?.(url)}
-              className="shrink-0 text-dummy-black/30 hover:text-dummy-black"
+              className="shrink-0 text-dummy-black/30 hover:text-dummy-black focus-visible:outline-2 focus-visible:outline-dummy-black"
+              aria-label={t("openLink")}
             >
               <ExternalLink className="size-3" />
             </button>
             <button
               onClick={() => handleRemove(i)}
-              className="shrink-0 text-dummy-black/30 hover:text-red-500"
+              className="shrink-0 text-dummy-black/30 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-dummy-black"
+              aria-label={t("removeInspiration")}
             >
               <X className="size-3" />
             </button>
@@ -118,6 +121,7 @@ export default function ProjectInspirations() {
               if (e.key === "Enter") handleAdd();
             }}
             placeholder={t("urlPlaceholder")}
+            aria-label={t("urlPlaceholder")}
             className="flex-1 rounded border border-dummy-black/15 bg-dummy-white px-2 py-1 text-xs text-dummy-black outline-none placeholder:text-dummy-black/30 focus:border-dummy-black/40"
           />
           <button

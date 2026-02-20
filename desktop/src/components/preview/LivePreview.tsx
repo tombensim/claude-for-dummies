@@ -57,23 +57,25 @@ export default function LivePreview({ refreshTrigger, onFeedback }: LivePreviewP
         <div className="flex items-center gap-1">
           <button
             onClick={() => setPreviewMode("mobile")}
-            className={`rounded-lg p-1.5 transition-colors ${
+            className={`rounded-lg p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-dummy-black ${
               previewMode === "mobile"
                 ? "bg-dummy-black text-dummy-yellow"
                 : "text-dummy-black/40 hover:text-dummy-black"
             }`}
-            title={t("mobile")}
+            aria-label={t("mobile")}
+            aria-pressed={previewMode === "mobile"}
           >
             <Smartphone className="size-4" />
           </button>
           <button
             onClick={() => setPreviewMode("desktop")}
-            className={`rounded-lg p-1.5 transition-colors ${
+            className={`rounded-lg p-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-dummy-black ${
               previewMode === "desktop"
                 ? "bg-dummy-black text-dummy-yellow"
                 : "text-dummy-black/40 hover:text-dummy-black"
             }`}
-            title={t("desktop")}
+            aria-label={t("desktop")}
+            aria-pressed={previewMode === "desktop"}
           >
             <Monitor className="size-4" />
           </button>
@@ -81,8 +83,8 @@ export default function LivePreview({ refreshTrigger, onFeedback }: LivePreviewP
 
         <button
           onClick={handleRefresh}
-          className="rounded-lg p-1.5 text-dummy-black/40 transition-colors hover:text-dummy-black"
-          title={t("refresh")}
+          className="rounded-lg p-1.5 text-dummy-black/40 transition-colors hover:text-dummy-black focus-visible:outline-2 focus-visible:outline-dummy-black"
+          aria-label={t("refresh")}
         >
           <RefreshCw className="size-4" />
         </button>

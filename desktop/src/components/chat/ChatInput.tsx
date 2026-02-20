@@ -178,8 +178,8 @@ export default function ChatInput({ onSend, prefill, onPrefillConsumed }: ChatIn
               <button
                 type="button"
                 onClick={() => removeImage(img.id)}
-                title={tAttach("removeImage")}
-                className="absolute -end-1 -top-1 flex size-5 items-center justify-center rounded-full bg-dummy-black text-dummy-yellow opacity-0 transition-opacity group-hover:opacity-100"
+                aria-label={tAttach("removeImage")}
+                className="absolute -end-1 -top-1 flex size-5 items-center justify-center rounded-full bg-dummy-black text-dummy-yellow opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-dummy-black"
               >
                 <X className="size-3" />
               </button>
@@ -203,8 +203,8 @@ export default function ChatInput({ onSend, prefill, onPrefillConsumed }: ChatIn
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isStreaming}
-          title={tAttach("attachImage")}
-          className="flex size-11 items-center justify-center rounded-xl text-dummy-black/50 transition-colors hover:bg-dummy-black/5 hover:text-dummy-black disabled:opacity-30"
+          aria-label={tAttach("attachImage")}
+          className="flex size-11 items-center justify-center rounded-xl text-dummy-black/50 transition-colors hover:bg-dummy-black/5 hover:text-dummy-black disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-dummy-black"
         >
           <Paperclip className="size-5" />
         </button>
@@ -215,13 +215,15 @@ export default function ChatInput({ onSend, prefill, onPrefillConsumed }: ChatIn
           onChange={(e) => setInput(e.target.value)}
           onPaste={handlePaste}
           placeholder={t("yourMessage")}
+          aria-label={t("yourMessage")}
           disabled={isStreaming}
           className="flex-1 rounded-xl border-2 border-dummy-black/20 bg-dummy-white px-4 py-3 text-dummy-black placeholder:text-dummy-black/40 focus:border-dummy-black focus:outline-none disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={!canSend}
-          className="flex size-11 items-center justify-center rounded-xl bg-dummy-black text-dummy-yellow transition-all hover:bg-dummy-black-light disabled:opacity-30"
+          aria-label={t("send")}
+          className="flex size-11 items-center justify-center rounded-xl bg-dummy-black text-dummy-yellow transition-all hover:bg-dummy-black-light disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-dummy-yellow"
         >
           <Send className="size-5" />
         </button>

@@ -65,9 +65,11 @@
     "feedbackBanner": "So? What do you think? Point at anything you'd change.",
     "yourMessage": "Type a message...",
     "send": "Send",
-    "mobile": "Mobile",
-    "desktop": "Desktop",
-    "refresh": "Refresh"
+    "mobile": "Mobile view",
+    "desktop": "Desktop view",
+    "refresh": "Refresh preview",
+    "chatRegion": "Chat messages",
+    "continue": "Continue"
   },
   "Ship": {
     "readyToShare": "Ready to share this with the world?",
@@ -183,6 +185,9 @@
     "mainReference": "Main reference",
     "urlPlaceholder": "https://example.com",
     "invalidUrl": "URL must start with http",
+    "openLink": "Open link",
+    "removeInspiration": "Remove inspiration",
+    "removeVariable": "Remove variable",
     "services": "Connected services",
     "github": "GitHub",
     "vercel": "Vercel",

@@ -65,9 +65,11 @@
     "feedbackBanner": "נו, מה אתה אומר? תגיד מה מפריע ומה בסדר.",
     "yourMessage": "הקלד הודעה...",
     "send": "שלח",
-    "mobile": "נייד",
-    "desktop": "מחשב",
-    "refresh": "רענון"
+    "mobile": "תצוגת נייד",
+    "desktop": "תצוגת מחשב",
+    "refresh": "רענון תצוגה",
+    "chatRegion": "הודעות צ׳אט",
+    "continue": "המשך"
   },
   "Ship": {
     "readyToShare": "רוצה לשים את זה באינטרנט?",
@@ -183,6 +185,9 @@
     "mainReference": "השראה ראשית",
     "urlPlaceholder": "https://example.com",
     "invalidUrl": "הכתובת חייבת להתחיל ב-http",
+    "openLink": "פתיחת קישור",
+    "removeInspiration": "הסרת השראה",
+    "removeVariable": "הסרת משתנה",
     "services": "חיבורים",
     "github": "GitHub",
     "vercel": "Vercel",

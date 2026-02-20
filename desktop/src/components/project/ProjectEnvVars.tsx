@@ -82,6 +82,7 @@ export default function ProjectEnvVars() {
               onChange={(e) => updateVar(i, "key", e.target.value)}
               onBlur={handleBlur}
               placeholder={t("keyPlaceholder")}
+              aria-label={t("keyPlaceholder")}
               className="w-[35%] rounded border border-dummy-black/15 bg-dummy-white px-1.5 py-1 font-mono text-xs text-dummy-black outline-none placeholder:text-dummy-black/30 focus:border-dummy-black/40"
             />
             <div className="relative flex-1">
@@ -92,6 +93,7 @@ export default function ProjectEnvVars() {
                 onChange={(e) => updateVar(i, "value", e.target.value)}
                 onBlur={handleBlur}
                 placeholder={t("valuePlaceholder")}
+                aria-label={t("valuePlaceholder")}
                 className="w-full rounded border border-dummy-black/15 bg-dummy-white py-1 pe-7 ps-1.5 font-mono text-xs text-dummy-black outline-none placeholder:text-dummy-black/30 focus:border-dummy-black/40"
               />
               <button
@@ -110,7 +112,8 @@ export default function ProjectEnvVars() {
             </div>
             <button
               onClick={() => removeVar(i)}
-              className="shrink-0 rounded p-1 text-dummy-black/30 hover:text-red-500"
+              className="shrink-0 rounded p-1 text-dummy-black/30 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-dummy-black"
+              aria-label={t("removeVariable")}
             >
               <Trash2 className="size-3" />
             </button>
