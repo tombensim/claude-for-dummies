@@ -4,47 +4,47 @@ import type { ChatMessage, ImageAttachment } from "./store";
 import { useAppStore } from "./store";
 import { getPhaseForStep } from "./progress-config";
 
-/** Translates raw tool calls into friendly status messages */
+/** Translates raw tool calls into friendly Shaul-voice status messages */
 const toolMessageMap: Record<string, { en: string; he: string }> = {
   "npx create-next-app": {
-    en: "Setting up your project...",
-    he: "מכין את הפרויקט שלך...",
+    en: "Setting up your project... this is the fun part",
+    he: "...מכין את הפרויקט שלך — עוד רגע יהיה פה משהו",
   },
   "npm run build": {
-    en: "Checking everything works...",
-    he: "בודק שהכל עובד...",
+    en: "Checking everything works... fingers crossed",
+    he: "...בודק שהכל עובד. אצבעות",
   },
   "npm run dev": {
-    en: "Starting your preview...",
-    he: "מפעיל תצוגה מקדימה...",
+    en: "Starting the preview... almost there",
+    he: "...מפעיל תצוגה מקדימה. כמעט שם",
   },
   "git push": {
-    en: "Saving your project...",
-    he: "שומר את הפרויקט...",
+    en: "Saving your work to the cloud...",
+    he: "...שומר את העבודה שלך בענן",
   },
   "git init": {
-    en: "Initializing project...",
-    he: "מאתחל את הפרויקט...",
+    en: "Setting the stage...",
+    he: "...מכין את הבמה",
   },
   "git commit": {
-    en: "Saving a checkpoint...",
-    he: "שומר נקודת ביניים...",
+    en: "Saving a checkpoint... just in case",
+    he: "שומר נקודת ביניים... ליתר ביטחון",
   },
   "npx vercel": {
-    en: "Publishing to the internet...",
-    he: "מעלה לאינטרנט...",
+    en: "Putting this on the internet... for real",
+    he: "...שם את זה באינטרנט. ברצינות",
   },
   "npm install": {
-    en: "Adding components...",
-    he: "מוסיף רכיבים...",
+    en: "Grabbing the tools...",
+    he: "...מביא את הכלים",
   },
   "npx shadcn": {
-    en: "Adding UI components...",
-    he: "מוסיף רכיבי עיצוב...",
+    en: "Adding some nice UI pieces...",
+    he: "...מוסיף כמה חלקים יפים",
   },
   mkdir: {
-    en: "Setting up folders...",
-    he: "מכין תיקיות...",
+    en: "Organizing things...",
+    he: "...מסדר את הבית",
   },
 };
 
