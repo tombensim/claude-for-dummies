@@ -95,10 +95,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const planModePrefix = buildMode === "plan"
+    ? `[Enter Plan Mode. You are in PLAN MODE. DO NOT create, write, or modify any files. DO NOT run any commands. Your ONLY job is to ask the user questions and create a plan. Ask questions one at a time. When you have enough information, present a clear plan summary.]\n\n`
+    : "";
+
   const localizedPrompt =
     locale === "he"
-      ? `[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
-      : `${prompt}${imageSuffix}`;
+      ? `${planModePrefix}[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
+      : `${planModePrefix}${prompt}${imageSuffix}`;
 
   const permissionArgs =
     buildMode === "plan"

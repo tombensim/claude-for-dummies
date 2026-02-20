@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --color-navy: #2B4570;
+  --color-navy-light: #3D5F8A;
+  --color-navy-dark: #1E3050;
+  --color-clay: #C1666B;
+  --color-clay-light: #D4898D;
+  --color-clay-dark: #A04E52;
+  --color-gold: #D4A96A;
+  --color-gold-light: #E3C495;
+  --color-cream: #F4F0E8;
+  --color-cream-light: #FAF8F4;
+  --color-charcoal: #2D2D2D;
+  --color-gray-warm: #6B6B6B;
+  --color-white: #FFFFFF;
+
+  --color-level-beginner: #4A9E6B;
+  --color-level-intermediate: #D4914A;
+  --color-level-advanced: #8B5DAF;
+
+  --color-background: #FAF8F4;
+  --color-foreground: #2D2D2D;
+  --color-primary: #2B4570;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F0EBE0;
+  --color-secondary-foreground: #2D2D2D;
+  --color-muted: #EDE8DF;
+  --color-muted-foreground: #6B6B6B;
+  --color-accent: #C1666B;
+  --color-accent-foreground: #FFFFFF;
+  --color-destructive: #CC0000;
+  --color-destructive-foreground: #FFFFFF;
+  --color-border: #DDD6CA;
+  --color-input: #DDD6CA;
+  --color-ring: #2B4570;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #2D2D2D;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --font-sans: "Assistant", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+html { scroll-behavior: smooth; }
