@@ -50,7 +50,13 @@ export default function WelcomePage() {
   const t = useTranslations("Welcome");
   const tp = useTranslations("Project");
   const router = useRouter();
-  const store = useAppStore();
+  const locale = useAppStore((s) => s.locale);
+  const setProjectDir = useAppStore((s) => s.setProjectDir);
+  const setActiveProjectId = useAppStore((s) => s.setActiveProjectId);
+  const setProjectName = useAppStore((s) => s.setProjectName);
+  const setWorkspaceMode = useAppStore((s) => s.setWorkspaceMode);
+  const setStep = useAppStore((s) => s.setStep);
+  const loadProject = useAppStore((s) => s.loadProject);
 
   const [recentProjects, setRecentProjects] = useState<ProjectMeta[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -73,18 +79,18 @@ export default function WelcomePage() {
     setIsCreating(true);
 
     try {
-      const meta = await window.electronAPI?.createProject?.("", store.locale);
+      const meta = await window.electronAPI?.createProject?.("", locale);
       if (meta) {
-        store.setProjectDir(meta.path);
-        store.setActiveProjectId(meta.id);
-        store.setProjectName(meta.name);
+        setProjectDir(meta.path);
+        setActiveProjectId(meta.id);
+        setProjectName(meta.name);
       }
     } catch (err) {
       console.error("[welcome] Project creation failed:", err);
     }
 
-    store.setWorkspaceMode(false);
-    store.setStep(2, 0);
+    setWorkspaceMode(false);
+    setStep(2, 0);
     router.push("/build");
   }
 
@@ -104,9 +110,9 @@ export default function WelcomePage() {
     try {
       const meta = await window.electronAPI?.switchProject?.(project.id);
       if (!meta) return;
-      store.loadProject(meta);
+      loadProject(meta);
       if (meta.sessionId) {
-        store.setStep(4, 1);
+        setStep(4, 1);
       }
       router.push("/build");
     } catch (err) {

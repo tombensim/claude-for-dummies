@@ -20,7 +20,7 @@ type DeployStep =
 export default function ShipPage() {
   const t = useTranslations("Ship");
   const router = useRouter();
-  const store = useAppStore();
+  const locale = useAppStore((s) => s.locale);
   const [deployStep, setDeployStep] = useState<DeployStep>("ready");
   const doneRef = useRef(false);
   const abortRef = useRef<{ abort: () => void } | null>(null);
@@ -38,26 +38,27 @@ export default function ShipPage() {
   function handleShip() {
     setDeployStep("saving");
 
-    const shipPrompt = store.locale === "he"
+    const s = useAppStore.getState();
+    const shipPrompt = s.locale === "he"
       ? "שלח את האתר שלי לאינטרנט!"
       : "Ship it! Put my site on the internet.";
 
     abortRef.current = connectToAgent({
       prompt: shipPrompt,
-      locale: store.locale,
-      projectDir: store.projectDir || undefined,
-      sessionId: store.sessionId || undefined,
+      locale: s.locale,
+      projectDir: s.projectDir || undefined,
+      sessionId: s.sessionId || undefined,
       onMessage: () => {},
       onSessionId: (sessionId) => {
-        store.setSessionId(sessionId);
-        const projectId = store.activeProjectId;
+        const st = useAppStore.getState();
+        st.setSessionId(sessionId);
+        const projectId = st.activeProjectId;
         if (projectId) {
           window.electronAPI?.updateProject?.(projectId, { sessionId }).catch(() => {});
         }
       },
       onDone: () => {
         if (!mountedRef.current) return;
-        // If we haven't found a URL by the time the stream ends, move to done anyway
         if (!doneRef.current) {
           doneRef.current = true;
           setDeployStep("done");
@@ -74,15 +75,17 @@ export default function ShipPage() {
       },
       callbacks: {
         onStepCompleted: (step) => {
-          store.completeStep(step);
-          store.setStep(step + 1, getPhaseForStep(step + 1));
+          const st = useAppStore.getState();
+          st.completeStep(step);
+          st.setStep(step + 1, getPhaseForStep(step + 1));
         },
         onLiveUrl: (url) => {
-          store.setLiveUrl(url);
-          store.setStep(9, 3);
-          store.completeStep(8);
+          const st = useAppStore.getState();
+          st.setLiveUrl(url);
+          st.setStep(9, 3);
+          st.completeStep(8);
 
-          const projectId = store.activeProjectId;
+          const projectId = st.activeProjectId;
           if (projectId) {
             window.electronAPI?.updateProject?.(projectId, { liveUrl: url }).catch(() => {});
           }
@@ -99,7 +102,6 @@ export default function ShipPage() {
       },
       onRawEvent: (raw) => {
         if (!mountedRef.current) return;
-        // Drive the staged UI from real stream events
         const type = raw.type as string;
         if (type === "assistant") {
           const message = raw.message as Record<string, unknown> | undefined;

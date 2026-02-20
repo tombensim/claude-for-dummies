@@ -13,11 +13,12 @@ import { useAppStore } from "@/lib/store";
 export default function DonePage() {
   const t = useTranslations("Done");
   const router = useRouter();
-  const store = useAppStore();
+  const liveUrl = useAppStore((s) => s.liveUrl);
+  const projectName = useAppStore((s) => s.projectName);
+  const reset = useAppStore((s) => s.reset);
   const confettiRef = useRef<ConfettiRef>(null);
 
   useEffect(() => {
-    // Fire confetti on mount
     const timer = setTimeout(() => {
       confettiRef.current?.fire({
         particleCount: 150,
@@ -31,16 +32,16 @@ export default function DonePage() {
   }, []);
 
   function handleCopy() {
-    if (store.liveUrl) {
-      navigator.clipboard.writeText(store.liveUrl);
+    if (liveUrl) {
+      navigator.clipboard.writeText(liveUrl);
     }
   }
 
   function handleShare() {
-    if (store.liveUrl && typeof navigator.share === "function") {
+    if (liveUrl && typeof navigator.share === "function") {
       navigator.share({
-        title: store.projectName || "My Website",
-        url: store.liveUrl,
+        title: projectName || "My Website",
+        url: liveUrl,
       });
     }
   }
@@ -50,20 +51,18 @@ export default function DonePage() {
   }
 
   function handleNewBuild() {
-    store.reset();
+    reset();
     router.push("/welcome");
   }
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-dummy-yellow p-8">
-      {/* Confetti canvas */}
       <Confetti
         ref={confettiRef}
         manualstart
         className="pointer-events-none fixed inset-0 z-50 h-full w-full"
       />
 
-      {/* Mascot */}
       <motion.div
         initial={{ opacity: 0, scale: 0.5 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -80,7 +79,6 @@ export default function DonePage() {
         />
       </motion.div>
 
-      {/* Message */}
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -90,8 +88,7 @@ export default function DonePage() {
         {t("congratulations")}
       </motion.h1>
 
-      {/* URL card */}
-      {store.liveUrl && (
+      {liveUrl && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,7 +96,7 @@ export default function DonePage() {
           className="card-brand mb-6 w-full max-w-md p-6"
         >
           <p className="mb-3 text-center text-lg font-bold text-dummy-black break-all">
-            {store.liveUrl}
+            {liveUrl}
           </p>
 
           <div className="flex gap-3">
@@ -129,7 +126,6 @@ export default function DonePage() {
         </motion.div>
       )}
 
-      {/* Actions */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

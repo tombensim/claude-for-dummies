@@ -173,6 +173,77 @@ const initialState = {
   previewMode: "desktop" as const,
 };
 
+// ---------------------------------------------------------------------------
+// Selectors — use these instead of bare useAppStore() to avoid full-store
+// subscriptions that trigger unnecessary re-renders.
+// ---------------------------------------------------------------------------
+
+/** Chat slice: messages, streaming state, activity */
+export const useChatStore = () =>
+  useAppStore((s) => ({
+    messages: s.messages,
+    isStreaming: s.isStreaming,
+    messagesLoaded: s.messagesLoaded,
+    currentActivity: s.currentActivity,
+    addMessage: s.addMessage,
+    loadMessages: s.loadMessages,
+    setStreaming: s.setStreaming,
+    setCurrentActivity: s.setCurrentActivity,
+  }));
+
+/** Progress slice: step, phase, completed steps */
+export const useProgressStore = () =>
+  useAppStore((s) => ({
+    currentStep: s.currentStep,
+    phase: s.phase,
+    completedSteps: s.completedSteps,
+    setStep: s.setStep,
+    completeStep: s.completeStep,
+    phaseTransition: s.phaseTransition,
+    setPhaseTransition: s.setPhaseTransition,
+  }));
+
+/** Project slice: project identity, urls, session */
+export const useProjectStore = () =>
+  useAppStore((s) => ({
+    sessionId: s.sessionId,
+    projectDir: s.projectDir,
+    activeProjectId: s.activeProjectId,
+    projectName: s.projectName,
+    liveUrl: s.liveUrl,
+    githubUrl: s.githubUrl,
+    locale: s.locale,
+    idea: s.idea,
+    vibe: s.vibe,
+    audience: s.audience,
+    priority: s.priority,
+    designRef: s.designRef,
+    isWorkspaceMode: s.isWorkspaceMode,
+    setSessionId: s.setSessionId,
+    setProjectDir: s.setProjectDir,
+    setActiveProjectId: s.setActiveProjectId,
+    setProjectName: s.setProjectName,
+    setLiveUrl: s.setLiveUrl,
+    setGithubUrl: s.setGithubUrl,
+    setLocale: s.setLocale,
+    setWorkspaceMode: s.setWorkspaceMode,
+    loadProject: s.loadProject,
+  }));
+
+/** UI slice: preview, drawer, workspace chips */
+export const useUIStore = () =>
+  useAppStore((s) => ({
+    previewUrl: s.previewUrl,
+    previewMode: s.previewMode,
+    projectDrawerOpen: s.projectDrawerOpen,
+    chipsVisible: s.chipsVisible,
+    setPreviewUrl: s.setPreviewUrl,
+    setPreviewMode: s.setPreviewMode,
+    toggleProjectDrawer: s.toggleProjectDrawer,
+    setProjectDrawerOpen: s.setProjectDrawerOpen,
+    hideChips: s.hideChips,
+  }));
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
