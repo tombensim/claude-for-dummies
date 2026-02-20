@@ -234,7 +234,12 @@ export const useAppStore = create<AppState>()(
             githubUrl: meta.githubUrl,
             isWorkspaceMode: isWorkspace,
             chipsVisible: isWorkspace,
+            // Reset progress — prevent bleeding from previous project
+            currentStep: 1,
+            phase: 0,
+            completedSteps: [],
             // Reset transient state — messages loaded by persistence hook
+            messages: [],
             isStreaming: false,
             messagesLoaded: false,
             currentActivity: null,
@@ -243,6 +248,7 @@ export const useAppStore = create<AppState>()(
             projectDrawerOpen: false,
             milestones: [],
             pendingChatMessage: null,
+            phaseTransition: null,
           };
         }),
       reset: () => set({ ...initialState }),
