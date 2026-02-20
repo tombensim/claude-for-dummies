@@ -17,6 +17,25 @@ function getProjectsDir() {
   return path.join(home, "Documents", "Claude Projects");
 }
 
+/**
+ * Validate that a path is within the known projects directory.
+ * Prevents path traversal attacks from renderer-supplied paths.
+ */
+function isPathWithinProjectsDir(targetPath) {
+  const resolved = path.resolve(targetPath);
+  const projectsDir = getProjectsDir();
+  return resolved.startsWith(projectsDir + path.sep) || resolved === projectsDir;
+}
+
+/**
+ * Validate that a path belongs to a known project in the project store.
+ */
+function isKnownProjectPath(targetPath) {
+  const resolved = path.resolve(targetPath);
+  const projects = projectStore.getProjects();
+  return projects.some((p) => resolved === path.resolve(p.path) || resolved.startsWith(path.resolve(p.path) + path.sep));
+}
+
 // --- Atomic JSON file helpers ---
 
 function loadJsonFile(filePath, fallback) {
@@ -70,11 +89,19 @@ function setupIPC() {
   });
 
   ipcMain.handle("project:open", (_event, projectPath) => {
+    if (!isKnownProjectPath(projectPath)) {
+      log.warn("project:open blocked — path not in known projects:", projectPath);
+      return;
+    }
     log.info("Opening project path:", projectPath);
     shell.openPath(projectPath);
   });
 
   ipcMain.handle("shell:open-external", (_event, url) => {
+    if (typeof url !== "string" || !(url.startsWith("https://") || url.startsWith("http://"))) {
+      log.warn("shell:open-external blocked — invalid URL protocol:", url);
+      return;
+    }
     log.info("Opening external:", url);
     shell.openExternal(url);
   });
@@ -348,6 +375,10 @@ function setupIPC() {
   // --- Environment variables ---
 
   ipcMain.handle("env:load", async (_event, projectPath) => {
+    if (!isKnownProjectPath(projectPath)) {
+      log.warn("env:load blocked — path not in known projects:", projectPath);
+      return [];
+    }
     const filePath = path.join(projectPath, ".env.local");
     try {
       const content = fs.readFileSync(filePath, "utf-8");
@@ -368,12 +399,18 @@ function setupIPC() {
     }
   });
 
+  const ENV_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
   ipcMain.handle("env:save", async (_event, { projectPath, vars }) => {
+    if (!isKnownProjectPath(projectPath)) {
+      log.warn("env:save blocked — path not in known projects:", projectPath);
+      return false;
+    }
     try {
       const filePath = path.join(projectPath, ".env.local");
       const content = vars
-        .filter((v) => v.key.trim())
-        .map((v) => `${v.key}=${v.value}`)
+        .filter((v) => v.key.trim() && ENV_KEY_PATTERN.test(v.key.trim()))
+        .map((v) => `${v.key.trim()}=${v.value}`)
         .join("\n");
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
       fs.writeFileSync(filePath, content + "\n", "utf-8");
@@ -430,11 +467,28 @@ function setupIPC() {
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
   ipcMain.handle("file:copy-to-project", async (_event, { projectDir, filePaths }) => {
+    if (!isKnownProjectPath(projectDir)) {
+      log.warn("file:copy-to-project blocked — projectDir not in known projects:", projectDir);
+      return [];
+    }
+
+    // Validate source paths don't contain traversal and are absolute
+    const home = app.getPath("home");
+    const safePaths = filePaths.filter((src) => {
+      const resolved = path.resolve(src);
+      // Block paths outside home directory and paths with traversal
+      if (!resolved.startsWith(home + path.sep)) {
+        log.warn("file:copy-to-project blocked source path outside home:", src);
+        return false;
+      }
+      return true;
+    });
+
     const refsDir = path.join(projectDir, "references");
     fs.mkdirSync(refsDir, { recursive: true });
 
     const results = [];
-    for (const src of filePaths) {
+    for (const src of safePaths) {
       try {
         const stat = fs.statSync(src);
         if (stat.size > MAX_FILE_SIZE) {

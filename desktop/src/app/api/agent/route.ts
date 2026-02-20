@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { spawn } from "child_process";
 import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
+import { join, resolve } from "path";
+import { homedir } from "os";
 import { agentLog, createLogger } from "@/lib/logger";
 import { findClaude } from "@/lib/find-claude";
 
@@ -35,12 +36,20 @@ const MIME_TO_EXT: Record<string, string> = {
   "image/webp": "webp",
 };
 
+const PROJECTS_DIR = join(homedir(), "Documents", "Claude Projects");
+
 async function saveImages(
   projectDir: string,
   images: ImagePayload[],
   requestId: string
 ): Promise<string[]> {
-  const uploadsDir = join(projectDir, ".cc4d", "uploads");
+  // Validate projectDir is within the expected projects directory
+  const resolvedDir = resolve(projectDir);
+  if (!resolvedDir.startsWith(PROJECTS_DIR + "/") && resolvedDir !== PROJECTS_DIR) {
+    throw new Error(`Invalid project directory: ${projectDir}`);
+  }
+
+  const uploadsDir = join(resolvedDir, ".cc4d", "uploads");
   await mkdir(uploadsDir, { recursive: true });
 
   const savedPaths: string[] = [];
