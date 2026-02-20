@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useAppStore, type ImageAttachment } from "@/lib/store";
 import { connectToAgent, type AgentCallbacks } from "@/lib/agent-client";
@@ -14,6 +12,7 @@ import { useDebugStore } from "@/lib/debug-store";
 import { useDebugShortcut } from "@/lib/use-debug-shortcut";
 import ChatPanel from "@/components/chat/ChatPanel";
 import LivePreview from "@/components/preview/LivePreview";
+import FeedbackTransition from "@/components/chat/FeedbackTransition";
 import PhaseTransition from "@/components/progress/PhaseTransition";
 import DebugTerminal from "@/components/debug/DebugTerminal";
 import ProjectDrawer from "@/components/project/ProjectDrawer";
@@ -38,7 +37,6 @@ Locale: ${locale}`;
 }
 
 export default function BuildPage() {
-  const t = useTranslations("Build");
   const router = useRouter();
   const store = useAppStore();
   const abortRef = useRef<{ abort: () => void } | null>(null);
@@ -315,17 +313,12 @@ export default function BuildPage() {
         )}
       </div>
 
-      {/* Feedback banner — only in wizard mode */}
+      {/* Feedback banner — only in wizard mode after build completes */}
       {!isWorkspace && store.completedSteps.includes(4) && !store.isStreaming && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="border-t-2 border-dummy-black/10 bg-dummy-white px-4 py-3 text-center"
-        >
-          <p className="text-sm font-medium text-dummy-black">
-            {t("feedbackBanner")}
-          </p>
-        </motion.div>
+        <FeedbackTransition
+          locale={store.locale}
+          onFeedback={(msg) => handleSend(msg)}
+        />
       )}
 
       <PhaseTransition
