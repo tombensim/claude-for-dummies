@@ -117,6 +117,7 @@ interface AppState {
   setBuildMode: (mode: "plan" | "build") => void;
   hideChips: () => void;
   addMessage: (msg: ChatMessage) => void;
+  updateLastMessage: (content: string) => void;
   loadMessages: (msgs: ChatMessage[]) => void;
   setStreaming: (streaming: boolean) => void;
   setCurrentActivity: (activity: string | null) => void;
@@ -269,6 +270,14 @@ export const useAppStore = create<AppState>()(
       hideChips: () => set({ chipsVisible: false }),
       addMessage: (msg) =>
         set((state) => ({ messages: [...state.messages, msg] })),
+      updateLastMessage: (content: string) =>
+        set((state) => {
+          const msgs = [...state.messages];
+          if (msgs.length > 0) {
+            msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], content };
+          }
+          return { messages: msgs };
+        }),
       loadMessages: (msgs) => set({ messages: msgs, messagesLoaded: true }),
       setStreaming: (isStreaming) => set({ isStreaming }),
       setCurrentActivity: (currentActivity) => set({ currentActivity }),

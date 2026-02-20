@@ -549,13 +549,28 @@ export function connectToAgent(options: {
                 options.onSessionId(parsed.session_id as string);
               }
 
+              const isStreaming = !!parsed._streaming;
               const results = parseAgentEvent(parsed, options.locale, options.callbacks, seenBlockIds);
 
               for (const { message: msg, activity } of results) {
                 if (activity !== undefined) {
                   useAppStore.getState().setCurrentActivity(activity);
                 }
-                if (msg) options.onMessage(msg);
+                if (msg) {
+                  if (isStreaming && msg.role === "assistant") {
+                    // Streaming text delta — update the last message in place
+                    // instead of adding a new one, for smooth real-time display.
+                    const store = useAppStore.getState();
+                    const lastMsg = store.messages[store.messages.length - 1];
+                    if (lastMsg?.role === "assistant" && !lastMsg.questionData) {
+                      store.updateLastMessage(msg.content);
+                    } else {
+                      options.onMessage(msg);
+                    }
+                  } else {
+                    options.onMessage(msg);
+                  }
+                }
               }
             } catch {
               // Skip unparseable lines

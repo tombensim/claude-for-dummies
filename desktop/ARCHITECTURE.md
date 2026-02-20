@@ -53,21 +53,22 @@ The desktop app is an **Electron + Next.js** hybrid that wraps a Claude Code CLI
 |  +---------------------------+-------------------+  |              |
 |  |            /api/agent (route.ts)              |  |              |
 |  |                                               |  |              |
-|  |  1. Resolve claude binary path                |  |              |
-|  |  2. spawn("claude", [...args])                |  |              |
-|  |     stdio: ["ignore", "pipe", "pipe"]         |  |              |
-|  |  3. Stream stdout → SSE events                |  |              |
+|  |  1. Call sdk-agent.ts runAgentSDK()           |  |              |
+|  |  2. SDK query() → async generator             |  |              |
+|  |  3. Stream SDK messages → SSE events          |  |              |
 |  |  4. Return session_id for --resume            |  |              |
 |  +-------------------+---------------------------+  |              |
 +----------------------|-------------------------------+-------------+
                        |
-                       | child_process.spawn
+                       | @anthropic-ai/claude-agent-sdk
                        v
 +----------------------+-------------------------------+
-|                  CLAUDE CLI                           |
-|  claude --print --output-format stream-json          |
-|         --dangerously-skip-permissions               |
-|         --verbose [--resume <sessionId>]             |
+|              CLAUDE AGENT SDK                        |
+|  query({ prompt, options })                          |
+|    allowedTools: Read, Write, Edit, Bash, ...        |
+|    permissionMode: "bypassPermissions"               |
+|    settingSources: ["project"]                       |
+|    resume: <sessionId>                               |
 |                                                      |
 |  Reads: CLAUDE.md (project root)                     |
 |  Contains: rewritten SKILL.md + user preferences     |
@@ -146,15 +147,15 @@ All IPC is handled via `ipcMain.handle()` (invoke/return) or `ipcMain.on()` (fir
 | `log:get-path` | renderer → main | Get electron log file path |
 | `log:from-renderer` | renderer → main | Forward renderer console.error/warn to file (fire-and-forget) |
 
-### Claude Binary Discovery
+### Authentication
 
-`findClaude()` searches these paths in order:
-1. `~/.local/bin/claude`
-2. `~/.claude/bin/claude`
-3. `/usr/local/bin/claude`
-4. `/opt/homebrew/bin/claude`
+The app uses the `@anthropic-ai/claude-agent-sdk` npm package which bundles the full Claude Code engine (`cli.js`). The SDK inherits the user's existing authentication:
 
-Both `electron/main.js` and `src/app/api/agent/route.ts` have their own `findClaude()` — the main process uses it for `runtime:status`, the API route uses it for spawning.
+1. **OAuth login** — from `claude login` (credentials stored in `~/.claude/`). This is the default for end-users with a Claude subscription.
+2. **API key** — via `ANTHROPIC_API_KEY` environment variable.
+3. **Third-party providers** — via `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, or `CLAUDE_CODE_USE_FOUNDRY` env vars.
+
+Since the SDK is bundled as an npm dependency, the `runtime:status` IPC handler always reports `claudeReady: true`. Authentication errors surface at runtime as `SDKAuthStatusMessage` or `SDKAssistantMessageError` events in the stream.
 
 ### Project Store
 
@@ -229,14 +230,19 @@ localStorage key: `cc4d-desktop-store`. Only a subset of fields is persisted (vi
 ```
 
 Behavior:
-1. Resolves Claude binary via `findClaude()`.
-2. Prepends Hebrew instruction if `locale === "he"`.
-3. Builds args: `--print --output-format stream-json --dangerously-skip-permissions --verbose [--resume <sessionId>]`.
-4. Spawns with `stdio: ["ignore", "pipe", "pipe"]` — **stdin must be `"ignore"`** or Claude hangs.
-5. Deletes `CLAUDECODE` env var from child to allow nesting inside a Claude Code session.
-6. Streams stdout as SSE (`data: {...}\n\n`), forwards stderr errors.
-7. Sends `data: [DONE]\n\n` on process close.
-8. Kills child on client disconnect (`req.signal` abort).
+1. Calls `runAgentSDK()` from `src/lib/sdk-agent.ts`.
+2. The SDK module prepends Hebrew instruction if `locale === "he"`.
+3. Calls `query()` from `@anthropic-ai/claude-agent-sdk` with options:
+   - `allowedTools`: Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, AskUserQuestion
+   - `permissionMode: "bypassPermissions"`
+   - `settingSources: ["project"]` (loads CLAUDE.md)
+   - `resume: <sessionId>` if resuming
+   - `cwd: projectDir`
+4. Iterates the async generator, serializing each `SDKMessage` as SSE (`data: {...}\n\n`).
+5. Sends `data: [DONE]\n\n` when the generator completes.
+6. Aborts the SDK query on client disconnect (`req.signal` abort).
+
+The SSE output format is identical to the old CLI `--output-format stream-json`, so the client-side `parseAgentEvent()` works unchanged.
 
 ### Agent Client
 
@@ -572,7 +578,8 @@ GitHub Releases via `electron-builder`'s `publish.provider: github`.
 | Preload bridge | `electron/preload.js` | `window.electronAPI` surface |
 | Project store | `electron/project-store.mjs` | `electron-store` wrapper for project metadata |
 | Project utils | `electron/project-utils.js` | `slugifyIdea()`, `deduplicatePath()` |
-| Agent route | `src/app/api/agent/route.ts` | SSE endpoint, Claude CLI spawning |
+| Agent route | `src/app/api/agent/route.ts` | SSE endpoint, calls SDK via sdk-agent.ts |
+| SDK agent | `src/lib/sdk-agent.ts` | Wraps `@anthropic-ai/claude-agent-sdk` query() |
 | Agent client | `src/lib/agent-client.ts` | Client-side SSE consumer, event parsing |
 | App store | `src/lib/store.ts` | Zustand global state |
 | Chat persistence | `src/lib/use-chat-persistence.ts` | Load/save chat via IPC |

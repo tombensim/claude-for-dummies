@@ -1,70 +1,18 @@
 import { NextRequest } from "next/server";
-import { spawn } from "child_process";
-import { mkdir, writeFile } from "fs/promises";
-import { join, resolve } from "path";
-import { homedir } from "os";
-import { agentLog, createLogger } from "@/lib/logger";
-import { findClaude } from "@/lib/find-claude";
-
-const debugLog = createLogger("agent-debug");
+import { agentLog } from "@/lib/logger";
+import { runAgentSDK } from "@/lib/sdk-agent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const claudePath = findClaude();
-agentLog.info("Claude binary resolved", { path: claudePath });
-
 /**
- * SSE endpoint that streams Claude CLI messages to the renderer.
- * Spawns `claude --print --output-format stream-json` as a subprocess.
+ * SSE endpoint that streams Claude Agent SDK messages to the renderer.
  *
- * Key: stdin must be "ignore" — claude CLI hangs if stdin is piped.
+ * Uses @anthropic-ai/claude-agent-sdk query() instead of spawning a CLI process.
+ * The SSE output format is identical to the old CLI --output-format stream-json,
+ * so the client-side agent-client.ts parseAgentEvent() works unchanged.
  */
-interface ImagePayload {
-  id: string;
-  filename: string;
-  mimeType: string;
-  base64: string;
-  sizeBytes: number;
-}
-
-const MIME_TO_EXT: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/gif": "gif",
-  "image/webp": "webp",
-};
-
-const PROJECTS_DIR = join(homedir(), "Documents", "Claude Projects");
-
-async function saveImages(
-  projectDir: string,
-  images: ImagePayload[],
-  requestId: string
-): Promise<string[]> {
-  // Validate projectDir is within the expected projects directory
-  const resolvedDir = resolve(projectDir);
-  if (!resolvedDir.startsWith(PROJECTS_DIR + "/") && resolvedDir !== PROJECTS_DIR) {
-    throw new Error(`Invalid project directory: ${projectDir}`);
-  }
-
-  const uploadsDir = join(resolvedDir, ".cc4d", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-
-  const savedPaths: string[] = [];
-  for (const img of images) {
-    const ext = MIME_TO_EXT[img.mimeType] || "png";
-    const filename = `img-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
-    const filePath = join(uploadsDir, filename);
-    const buffer = Buffer.from(img.base64, "base64");
-    await writeFile(filePath, buffer);
-    savedPaths.push(filePath);
-    agentLog.info(`[${requestId}] Saved image`, { path: filePath, size: buffer.length });
-  }
-  return savedPaths;
-}
-
 export async function POST(req: NextRequest) {
   const { prompt, images, locale, projectDir, sessionId, mode } = await req.json();
   const buildMode: "plan" | "build" = mode === "build" ? "build" : "plan";
@@ -80,194 +28,46 @@ export async function POST(req: NextRequest) {
   });
 
   const encoder = new TextEncoder();
-
-  // Save images to disk and build prompt suffix
-  let imageSuffix = "";
-  if (images?.length && projectDir) {
-    try {
-      const savedPaths = await saveImages(projectDir, images as ImagePayload[], requestId);
-      const pathList = savedPaths
-        .map((p) => `Read the image from: ${p}`)
-        .join("\n");
-      imageSuffix = `\n\n[The user attached ${savedPaths.length} image(s). Use the Read tool to view them:\n${pathList}]`;
-    } catch (err) {
-      agentLog.error(`[${requestId}] Failed to save images`, { error: String(err) });
-    }
-  }
-
-  const planModePrefix = buildMode === "plan"
-    ? `[Enter Plan Mode. You are in PLAN MODE. DO NOT create, write, or modify any files. DO NOT run any commands. Your ONLY job is to ask the user questions and create a plan. Ask questions one at a time. When you have enough information, present a clear plan summary.]\n\n`
-    : "";
-
-  const localizedPrompt =
-    locale === "he"
-      ? `${planModePrefix}[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
-      : `${planModePrefix}${prompt}${imageSuffix}`;
-
-  // Always use skip-permissions — plan mode is enforced via prompt prefix,
-  // not CLI flags. --permission-mode plan blocks MCP tools like AskUserQuestion.
-  const permissionArgs = ["--dangerously-skip-permissions"];
-
-  const args = [
-    "--print",
-    "--output-format",
-    "stream-json",
-    ...permissionArgs,
-    "--verbose",
-  ];
-
-  if (sessionId) {
-    args.push("--resume", sessionId);
-  }
-
-  args.push(localizedPrompt);
-
-  const env = { ...process.env };
-  delete env.CLAUDECODE;
+  const abortController = new AbortController();
 
   const stream = new ReadableStream({
-    start(controller) {
-      function spawnClaude(spawnArgs: string[], isRetry = false) {
-        agentLog.info(`[${requestId}] Spawning claude${isRetry ? " (retry without resume)" : ""}`, {
-          binary: claudePath,
-          args: spawnArgs.slice(0, -1), // exclude prompt
+    async start(controller) {
+      let closed = false;
+      const safeEnqueue = (data: Uint8Array) => {
+        if (!closed) controller.enqueue(data);
+      };
+      try {
+        for await (const event of runAgentSDK(
+          { prompt, images, locale, projectDir, sessionId, buildMode },
+          requestId,
+          abortController
+        )) {
+          const line = JSON.stringify(event);
+          safeEnqueue(encoder.encode(`data: ${line}\n\n`));
+        }
+      } catch (err) {
+        agentLog.error(`[${requestId}] Stream error`, {
+          error: String(err),
         });
-
-        const child = spawn(claudePath, spawnArgs, {
-          cwd: projectDir || process.cwd(),
-          env,
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-
-        const childPid = child.pid;
-        agentLog.info(`[${requestId}] Claude process started`, { pid: childPid });
-
-        let buffer = "";
-        let messageCount = 0;
-        let resumeFailed = false;
-
-        child.stdout!.on("data", (data: Buffer) => {
-          buffer += data.toString();
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            try {
-              const parsed = JSON.parse(line);
-              messageCount++;
-              debugLog.debug(`[${requestId}] raw`, parsed);
-
-              // Detect stale session resume failure: result with error
-              // on the very first message, 0 turns — don't forward to client
-              if (
-                !isRetry &&
-                sessionId &&
-                parsed.type === "result" &&
-                parsed.subtype === "error_during_execution" &&
-                parsed.num_turns === 0
-              ) {
-                agentLog.warn(`[${requestId}] Resume failed, will retry fresh`);
-                resumeFailed = true;
-                return; // don't send this error to the client
-              }
-
-              // Log message type and key info (not full payload — too large)
-              const logEntry: Record<string, unknown> = {
-                type: parsed.type,
-                seq: messageCount,
-              };
-              if (parsed.type === "assistant" && parsed.message?.content) {
-                const content = parsed.message.content;
-                if (Array.isArray(content)) {
-                  logEntry.blocks = content.map((b: Record<string, unknown>) => {
-                    if (b.type === "text") return { type: "text", length: (b.text as string)?.length };
-                    if (b.type === "tool_use") return { type: "tool_use", name: b.name };
-                    return { type: b.type };
-                  });
-                }
-              }
-              if (parsed.type === "result") {
-                logEntry.subtype = parsed.subtype;
-                logEntry.duration_ms = parsed.duration_ms;
-                logEntry.num_turns = parsed.num_turns;
-                logEntry.cost_usd = parsed.total_cost_usd;
-                logEntry.session_id = parsed.session_id;
-              }
-              agentLog.debug(`[${requestId}] SSE event`, logEntry);
-
-              controller.enqueue(encoder.encode(`data: ${line}\n\n`));
-            } catch {
-              agentLog.warn(`[${requestId}] Non-JSON stdout line`, {
-                preview: line.slice(0, 200),
-              });
-            }
-          }
-        });
-
-        child.stderr!.on("data", (data: Buffer) => {
-          const text = data.toString().trim();
-          if (!text) return;
-          agentLog.warn(`[${requestId}] Claude stderr`, { text: text.slice(0, 500) });
-          if (text.includes("Error") || text.includes("error")) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ type: "error", content: text })}\n\n`
-              )
-            );
-          }
-        });
-
-        child.on("error", (err) => {
-          agentLog.error(`[${requestId}] Spawn error`, { error: err.message });
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ type: "error", content: err.message })}\n\n`
-            )
-          );
+        safeEnqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ type: "error", content: String(err) })}\n\n`
+          )
+        );
+      } finally {
+        if (!closed) {
+          closed = true;
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
-        });
-
-        child.on("close", (code, signal) => {
-          agentLog.info(`[${requestId}] Claude process exited`, {
-            pid: childPid,
-            code,
-            signal,
-            messageCount,
-          });
-
-          // If resume failed, retry without --resume
-          if (resumeFailed) {
-            const freshArgs = spawnArgs.filter(
-              (a, i, arr) => a !== "--resume" && arr[i - 1] !== "--resume"
-            );
-            spawnClaude(freshArgs, true);
-            return;
-          }
-
-          if (buffer.trim()) {
-            try {
-              JSON.parse(buffer);
-              controller.enqueue(encoder.encode(`data: ${buffer}\n\n`));
-            } catch {
-              // ignore
-            }
-          }
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-        });
-
-        req.signal.addEventListener("abort", () => {
-          agentLog.info(`[${requestId}] Client disconnected, killing claude`, {
-            pid: childPid,
-          });
-          child.kill("SIGTERM");
-        });
+        }
       }
-
-      spawnClaude(args);
     },
+  });
+
+  // Kill the SDK query if client disconnects
+  req.signal.addEventListener("abort", () => {
+    agentLog.info(`[${requestId}] Client disconnected, aborting SDK query`);
+    abortController.abort();
   });
 
   return new Response(stream, {
