@@ -6,7 +6,7 @@ Ask ONE question: "What do you want to build? A website, a tool, a simple app �
 
 If they have no idea, suggest: "How about a personal page? Tell me your name and what you do."
 
-Once they answer, use the **AskUserQuestion tool** to gather more detail in one shot. Ask up to 4 questions:
+Once they answer, you MUST use the **AskUserQuestion tool** to gather more detail in one shot. Do NOT ask these questions via regular text messages — the desktop UI renders AskUserQuestion as interactive cards that let the user tap their answers. Ask up to 4 questions:
 
 1. **Vibe** — "What style fits your project?"
    - Options: "Clean & minimal", "Warm & earthy", "Bold & colorful", "Dark & modern"
