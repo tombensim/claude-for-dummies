@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import type { ChatMessage } from "@/lib/store";
 
@@ -10,7 +11,32 @@ interface QuestionCardProps {
 
 export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
   const questions = message.questionData?.questions;
+  const [selections, setSelections] = useState<Record<number, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSelect = useCallback(
+    (qIdx: number, label: string) => {
+      if (submitted) return;
+      setSelections((prev) => {
+        const updated = { ...prev, [qIdx]: label };
+        return updated;
+      });
+    },
+    [submitted],
+  );
+
+  const handleSubmit = useCallback(() => {
+    if (!questions || submitted) return;
+    setSubmitted(true);
+    const answer = questions
+      .map((q, i) => `${q.question}: ${selections[i]}`)
+      .join("\n");
+    onAnswer(answer);
+  }, [questions, selections, submitted, onAnswer]);
+
   if (!questions || questions.length === 0) return null;
+
+  const allAnswered = Object.keys(selections).length === questions.length;
 
   return (
     <motion.div
@@ -20,23 +46,47 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
     >
       {questions.map((q, qIdx) => (
         <div key={qIdx} className="card-brand p-4" dir="rtl">
-          <p className="mb-3 text-sm font-bold text-dummy-black">
-            {q.question}
-          </p>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-dummy-black text-xs font-bold text-dummy-yellow">
+              {selections[qIdx] ? "✓" : qIdx + 1}
+            </span>
+            <p className="text-sm font-bold text-dummy-black">{q.question}</p>
+          </div>
           <div className="flex flex-wrap gap-2" dir="auto">
-            {q.options.map((opt, oIdx) => (
-              <button
-                key={oIdx}
-                onClick={() => onAnswer(opt.label)}
-                dir="auto"
-                className="rounded-xl border-2 border-dummy-black bg-dummy-yellow px-4 py-2 text-sm font-bold text-dummy-black transition-all hover:bg-dummy-black hover:text-dummy-yellow"
-              >
-                {opt.label}
-              </button>
-            ))}
+            {q.options.map((opt, oIdx) => {
+              const isSelected = selections[qIdx] === opt.label;
+              return (
+                <button
+                  key={oIdx}
+                  onClick={() => handleSelect(qIdx, opt.label)}
+                  disabled={submitted}
+                  dir="auto"
+                  className={`rounded-xl border-2 border-dummy-black px-4 py-2 text-sm font-bold transition-all ${
+                    isSelected
+                      ? "bg-dummy-black text-dummy-yellow"
+                      : submitted
+                        ? "cursor-default opacity-50"
+                        : "bg-dummy-yellow text-dummy-black hover:bg-dummy-black hover:text-dummy-yellow"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       ))}
+
+      {allAnswered && !submitted && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={handleSubmit}
+          className="w-full rounded-xl border-2 border-dummy-black bg-dummy-black px-6 py-3 text-sm font-bold text-dummy-yellow transition-all hover:bg-dummy-yellow hover:text-dummy-black"
+        >
+          {"המשך →"}
+        </motion.button>
+      )}
     </motion.div>
   );
 }
