@@ -3,3 +3,10 @@
 .env*
 *.pem
 yoga-studio/
+cafe/
+node_modules/
+.next/
+cafe/
+yoga-studio/
+*.pack
+

@@ -123,7 +123,11 @@ export interface AgentCallbacks {
   onDevServerDetected?: () => void;
   onFileChanged?: (filePath: string) => void;
   onStepCompleted?: (step: number) => void;
+  /** Heuristic: we believe the flow has reached this step (backfills prior steps) */
+  onStepHint?: (step: number) => void;
   onLiveUrl?: (url: string) => void;
+  /** Preview server confirmed ready with a specific URL */
+  onPreviewReady?: (url: string) => void;
 }
 
 /**
@@ -152,8 +156,33 @@ export function parseAgentEvent(
   const type = raw.type as string;
   const now = Date.now();
 
-  // Skip system/init, rate_limit, user (tool_result) messages
-  if (type === "system" || type === "rate_limit_event" || type === "user") {
+  // Skip system/init, rate_limit messages
+  if (type === "system" || type === "rate_limit_event") {
+    return { message: null };
+  }
+
+  // Parse user (tool_result) events for preview URLs and dev server readiness
+  if (type === "user") {
+    const message = raw.message as Record<string, unknown> | undefined;
+    const content = message?.content as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(content)) {
+      for (const block of content) {
+        if (block.type === "tool_result") {
+          const resultContent = (block.content as string) || "";
+          // Detect localhost URL in tool output (e.g. "Local: http://localhost:3000")
+          const localhostMatch = resultContent.match(
+            /https?:\/\/localhost:(\d+)/
+          );
+          if (localhostMatch) {
+            callbacks?.onPreviewReady?.(localhostMatch[0]);
+          }
+          // Detect Next.js "Ready in" or Vite "ready in" pattern
+          if (/ready in/i.test(resultContent) && localhostMatch) {
+            callbacks?.onPreviewReady?.(localhostMatch[0]);
+          }
+        }
+      }
+    }
     return { message: null };
   }
 
@@ -177,11 +206,15 @@ export function parseAgentEvent(
         const text = (block.text as string) || "";
         if (!text.trim()) continue;
 
-        // Detect Vercel deployment URL
+        // Detect Vercel deployment URL → hint step 9 (celebrate)
         const urlMatch = text.match(/https:\/\/[\w-]+\.vercel\.app/);
-        if (urlMatch && callbacks?.onLiveUrl) {
-          callbacks.onLiveUrl(urlMatch[0]);
+        if (urlMatch) {
+          callbacks?.onLiveUrl?.(urlMatch[0]);
+          callbacks?.onStepHint?.(9);
         }
+
+        // Note: step 7 (offer-to-ship) is conversation-driven, detected via progress.sh.
+        // Step 8 (push-and-deploy) is hinted by deploy commands (npx vercel, etc.).
 
         // Fallback: detect text that looks like multi-choice questions
         const questionData = parseTextQuestions(text);
@@ -218,12 +251,27 @@ export function parseAgentEvent(
         if (toolName === "Bash" && toolInput?.command) {
           const command = toolInput.command as string;
 
-          // Detect dev server start
+          // Detect dev server start → hint step 5 (react-and-iterate)
           if (command.includes("npm run dev") || command.includes("next dev")) {
             callbacks?.onDevServerDetected?.();
+            callbacks?.onStepHint?.(5);
           }
 
-          // Detect progress completion
+          // Detect build command → hint step 4 (scaffold-and-build)
+          if (command.includes("npm run build") || command.includes("next build")) {
+            callbacks?.onStepHint?.(4);
+          }
+
+          // Detect deploy commands → hint step 8 (push-and-deploy)
+          if (
+            command.includes("npx vercel") ||
+            command.includes("vercel deploy") ||
+            command.includes("vercel --prod")
+          ) {
+            callbacks?.onStepHint?.(8);
+          }
+
+          // Detect progress completion (canonical mechanism)
           const progressMatch = command.match(/progress\.sh\s+complete\s+(\d+)/);
           if (progressMatch) {
             callbacks?.onStepCompleted?.(parseInt(progressMatch[1], 10));
@@ -244,10 +292,15 @@ export function parseAgentEvent(
           };
         }
 
-        // Write → show filename + notify file change
+        // Write → show filename + notify file change + hint step 4
         if (toolName === "Write" && toolInput?.file_path) {
           callbacks?.onFileChanged?.(toolInput.file_path as string);
-          const fileName = basename(toolInput.file_path as string);
+          // Writing source files signals scaffold-and-build (step 4)
+          const filePath = toolInput.file_path as string;
+          if (!filePath.endsWith("CLAUDE.md") && !filePath.includes("progress.sh")) {
+            callbacks?.onStepHint?.(4);
+          }
+          const fileName = basename(filePath);
           const statusContent =
             locale === "he"
               ? `יוצר ${fileName}...`
@@ -259,16 +312,20 @@ export function parseAgentEvent(
               content: statusContent,
               timestamp: now,
               toolName,
-              toolInput: { file_path: toolInput.file_path as string },
+              toolInput: { file_path: filePath },
             },
             activity: statusContent,
           };
         }
 
-        // Edit → show filename + notify file change
+        // Edit → show filename + notify file change + hint step 4
         if (toolName === "Edit" && toolInput?.file_path) {
           callbacks?.onFileChanged?.(toolInput.file_path as string);
-          const fileName = basename(toolInput.file_path as string);
+          const filePath = toolInput.file_path as string;
+          if (!filePath.endsWith("CLAUDE.md") && !filePath.includes("progress.sh")) {
+            callbacks?.onStepHint?.(4);
+          }
+          const fileName = basename(filePath);
           const statusContent =
             locale === "he"
               ? `...${fileName} עורך`
@@ -280,7 +337,7 @@ export function parseAgentEvent(
               content: statusContent,
               timestamp: now,
               toolName,
-              toolInput: { file_path: toolInput.file_path as string },
+              toolInput: { file_path: filePath },
             },
             activity: statusContent,
           };
@@ -302,17 +359,20 @@ export function parseAgentEvent(
           };
         }
 
-        // Glob/Grep/Read → skip (internal, not interesting to user)
+        // Glob/Grep/Read → no visible message, but update activity bar
         if (
           toolName === "Glob" ||
           toolName === "Grep" ||
           toolName === "Read"
         ) {
-          return { message: null };
+          const activityText =
+            locale === "he" ? "בודק קבצים..." : "Checking files...";
+          return { message: null, activity: activityText };
         }
 
-        // AskUserQuestion → pass through as question
+        // AskUserQuestion → pass through as question + hint step 3 (gather-idea)
         if (toolName === "AskUserQuestion") {
+          callbacks?.onStepHint?.(3);
           return {
             message: {
               id: `question-${uid()}`,

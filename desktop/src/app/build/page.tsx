@@ -225,7 +225,28 @@ export default function BuildPage() {
             if (newPhase !== oldPhase) {
               st.setPhaseTransition({ from: oldPhase, to: newPhase });
             }
+          },
+          onStepHint: (hintedStep) => {
+            const st = useAppStore.getState();
+            // Only advance forward — ignore if already at or past the hinted step
+            if (st.currentStep >= hintedStep) return;
+            // In workspace mode, don't advance steps
+            if (st.isWorkspaceMode) return;
 
+            const oldPhase = st.phase;
+            // Backfill: complete all steps before the hinted step
+            for (let s = 1; s < hintedStep; s++) {
+              st.completeStep(s);
+            }
+            const newPhase = getPhaseForStep(hintedStep);
+            st.setStep(hintedStep, newPhase);
+
+            if (newPhase !== oldPhase) {
+              st.setPhaseTransition({ from: oldPhase, to: newPhase });
+            }
+          },
+          onPreviewReady: (url) => {
+            useAppStore.getState().setPreviewUrl(url);
           },
           onLiveUrl: (url) => {
             const st = useAppStore.getState();
