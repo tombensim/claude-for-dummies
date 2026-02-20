@@ -160,6 +160,7 @@ export default function BuildPage() {
         locale: s.locale,
         projectDir: s.projectDir || undefined,
         sessionId: s.sessionId || undefined,
+        mode: s.buildMode,
         onMessage: (msg) => {
           useAppStore.getState().addMessage(msg);
           // Extract milestones for the project activity log
@@ -282,6 +283,15 @@ export default function BuildPage() {
     handleSend(deployPrompt);
   }
 
+  function handleApprovePlan() {
+    // Switch to build mode — Claude will now have full tool access
+    store.setBuildMode("build");
+    const approvalPrompt = store.locale === "he"
+      ? "המשתמש אישר את התוכנית. התחל לבנות."
+      : "The user approved the plan. Begin building.";
+    handleSend(approvalPrompt);
+  }
+
   function handleBack() {
     if (store.isStreaming) {
       store.setProjectDrawerOpen(true);
@@ -330,6 +340,7 @@ export default function BuildPage() {
             onSend={handleSend}
             showRecoveryBanner={showRecoveryBanner}
             isWorkspaceMode={isWorkspace}
+            onApprovePlan={handleApprovePlan}
           />
         </div>
 

@@ -10,24 +10,37 @@ import ConversationRecoveryBanner from "./ConversationRecoveryBanner";
 import PlanningHeader from "./PlanningHeader";
 import SoulNarrator from "./SoulNarrator";
 import SuggestionChips from "./SuggestionChips";
+import PlanApprovalCard from "./PlanApprovalCard";
 import StepIndicator from "@/components/progress/StepIndicator";
 
 interface ChatPanelProps {
   onSend: (message: string, images?: ImageAttachment[]) => void;
   showRecoveryBanner?: boolean;
   isWorkspaceMode?: boolean;
+  onApprovePlan?: () => void;
 }
 
 export default function ChatPanel({
   onSend,
   showRecoveryBanner = false,
   isWorkspaceMode = false,
+  onApprovePlan,
 }: ChatPanelProps) {
   const [prefill, setPrefill] = useState("");
   const currentStep = useAppStore((s) => s.currentStep);
   const locale = useAppStore((s) => s.locale);
   const isStreaming = useAppStore((s) => s.isStreaming);
+  const buildMode = useAppStore((s) => s.buildMode);
+  const messages = useAppStore((s) => s.messages);
   const showChips = isWorkspaceMode || currentStep >= 5;
+
+  // Show plan approval card when: wizard mode, plan mode, not streaming,
+  // and there are assistant messages (Claude has responded with a plan)
+  const showPlanApproval =
+    !isWorkspaceMode &&
+    buildMode === "plan" &&
+    !isStreaming &&
+    messages.some((m) => m.role === "assistant");
 
   // Show SoulNarrator briefly when step changes (wizard mode only)
   const [showNarrator, setShowNarrator] = useState(false);
@@ -75,6 +88,7 @@ export default function ChatPanel({
       )}
       <ChatHistory onAnswer={handleSend} />
       <LiveActivityBar />
+      {showPlanApproval && onApprovePlan && <PlanApprovalCard onApprove={onApprovePlan} />}
       {showChips && <SuggestionChips onSelect={handleChipSelect} forceShow={currentStep >= 5} />}
       <ChatInput
         onSend={handleSend}
