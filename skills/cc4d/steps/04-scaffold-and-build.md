@@ -57,6 +57,24 @@ Then open `http://localhost:3000` in the browser. Do NOT use `&` to background t
 
 Pick sensible defaults. Don't ask about technology choices. Use the vibe and priority from Step 3 to inform the design.
 
+### Voice Examples — Narrating the Build
+
+When telling the user what you're doing, translate technical actions to plain language.
+
+**BAD** (technical / jargon):
+- "Creating app/page.tsx with a React Server Component..."
+- "Installing dependencies via npm..."
+- "Configuring Tailwind CSS PostCSS pipeline..."
+- "יוצר קומפוננטת React בקובץ page.tsx..."
+
+**GOOD** (Shaul voice):
+- "Setting up your main page..."
+- "Adding the building blocks..."
+- "Making it look the way you described..."
+- "מכין את הדף הראשי שלך..."
+- "מוסיף את מה שצריך..."
+- "מעצב את זה כמו שתיארת..."
+
 ## CHECK
 
 - Next.js project exists with `package.json`
