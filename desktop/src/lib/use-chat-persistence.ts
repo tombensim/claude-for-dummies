@@ -58,7 +58,7 @@ export function useChatPersistence(projectDir: string | null) {
 
     const dir = projectDirRef.current;
     saveTimerRef.current = setTimeout(() => {
-      api.saveChatHistory!(dir, messages as unknown[]);
+      api.saveChatHistory!(dir, messages);
     }, 500);
 
     return () => {

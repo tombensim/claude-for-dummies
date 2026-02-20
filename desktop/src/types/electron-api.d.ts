@@ -1,4 +1,13 @@
-import type { ProjectMeta } from "@/lib/store";
+import type {
+  ChatMessage,
+  ProjectMilestone,
+  ProjectMeta,
+  RuntimeStatus,
+  AuthStatus,
+  EnvVar,
+  FileCopyResult,
+  ProjectPreferences,
+} from "./ipc";
 
 declare global {
   interface Window {
@@ -7,11 +16,7 @@ declare global {
       getSystemLocale: () => Promise<"he" | "en">;
 
       // Runtime status
-      getRuntimeStatus: () => Promise<{
-        nodeReady: boolean;
-        gitReady: boolean;
-        claudeReady: boolean;
-      }>;
+      getRuntimeStatus: () => Promise<RuntimeStatus>;
 
       // Project — file system
       openProject: (path: string) => Promise<void>;
@@ -35,32 +40,26 @@ declare global {
       onAgentError: (callback: (error: string) => void) => () => void;
 
       // Chat history
-      loadChatHistory: (projectPath: string) => Promise<unknown[]>;
+      loadChatHistory: (projectPath: string) => Promise<ChatMessage[]>;
       saveChatHistory: (
         projectPath: string,
-        messages: unknown[]
+        messages: ChatMessage[]
       ) => Promise<boolean>;
 
       // Preferences
       finalizePreferences: (
         projectId: string,
-        preferences: {
-          idea?: string;
-          vibe?: string | null;
-          audience?: string | null;
-          priority?: string | null;
-          designRef?: string | null;
-        }
+        preferences: ProjectPreferences
       ) => Promise<boolean>;
 
       // Preview
       pollPort: (port: number) => Promise<boolean>;
 
       // Milestones
-      loadMilestones: (projectPath: string) => Promise<unknown[]>;
+      loadMilestones: (projectPath: string) => Promise<ProjectMilestone[]>;
       saveMilestones: (
         projectPath: string,
-        milestones: unknown[]
+        milestones: ProjectMilestone[]
       ) => Promise<boolean>;
 
       // Inspirations
@@ -71,19 +70,13 @@ declare global {
       ) => Promise<boolean>;
 
       // Services auth
-      checkAuthStatus: () => Promise<{
-        github: boolean;
-        vercel: boolean;
-        vercelUser: string | null;
-      }>;
+      checkAuthStatus: () => Promise<AuthStatus>;
 
       // Environment variables
-      loadEnvVars: (
-        projectPath: string
-      ) => Promise<Array<{ key: string; value: string }>>;
+      loadEnvVars: (projectPath: string) => Promise<EnvVar[]>;
       saveEnvVars: (
         projectPath: string,
-        vars: Array<{ key: string; value: string }>
+        vars: EnvVar[]
       ) => Promise<boolean>;
 
       // Notes
@@ -98,14 +91,7 @@ declare global {
       copyFilesToProject: (
         projectDir: string,
         filePaths: string[]
-      ) => Promise<
-        Array<{
-          src: string;
-          dest: string | null;
-          copied: boolean;
-          error?: string;
-        }>
-      >;
+      ) => Promise<FileCopyResult[]>;
 
       // Logging
       getLogPath: () => Promise<string>;
