@@ -2,11 +2,8 @@
 .next/
 .env*
 *.pem
+.nanny/
 yoga-studio/
 cafe/
 node_modules/
-.next/
-cafe/
-yoga-studio/
 *.pack
-

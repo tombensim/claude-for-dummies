@@ -100,9 +100,9 @@ async function startNextServer() {
 
 // --- Window management ---
 
-function createWindow(port) {
+function createWindow(port, host = "127.0.0.1") {
   const isMac = process.platform === "darwin";
-  log.info("Creating window, loading http://127.0.0.1:" + port);
+  log.info(`Creating window, loading http://${host}:${port}`);
 
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -122,7 +122,7 @@ function createWindow(port) {
     show: false,
   });
 
-  mainWindow.loadURL(`http://127.0.0.1:${port}`);
+  mainWindow.loadURL(`http://${host}:${port}`);
 
   mainWindow.once("ready-to-show", () => {
     log.info("Window ready to show");
@@ -161,15 +161,17 @@ app.whenReady().then(async () => {
   const isDev = !app.isPackaged;
   log.info("Dev mode:", isDev);
 
-  // In dev, Next.js runs externally via concurrently on port 3456
+  // In dev, Next.js runs externally via concurrently on port 3456.
+  // Use "localhost" in dev so HMR WebSocket connects on the same origin.
   const port = isDev ? 3456 : await startNextServer();
+  const devHost = isDev ? "localhost" : "127.0.0.1";
 
-  createWindow(port);
+  createWindow(port, devHost);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       log.info("Reactivating — creating new window");
-      createWindow(port);
+      createWindow(port, devHost);
     }
   });
 });

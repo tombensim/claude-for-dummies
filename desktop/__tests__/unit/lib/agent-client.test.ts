@@ -1,5 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { parseAgentEvent } from "@/lib/agent-client";
+import { parseAgentEvent as _parseAgentEvent } from "@/lib/agent-client";
+import type { AgentCallbacks } from "@/lib/agent-client";
+
+// Adapter: the real parseAgentEvent now returns ParseResult[].
+// These tests were written for the old single-result API.
+// This wrapper calls with proper args and returns the first result
+// (or a null-message/undefined-activity fallback).
+function parseAgentEvent(
+  raw: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks?: AgentCallbacks,
+  _skip?: number
+) {
+  const results = _parseAgentEvent(raw, locale, callbacks, new Set<string>());
+  if (results.length === 0) return { message: null, activity: undefined };
+  // Merge all results: first message found + first activity found
+  const message = results.find((r) => r.message)?.message ?? null;
+  const activity = results.find((r) => r.activity !== undefined)?.activity;
+  return { message, activity };
+}
 
 // Stable timestamp for deterministic ids
 beforeEach(() => {
@@ -71,10 +90,10 @@ describe("parseAgentEvent", () => {
     const { message, activity } = parseAgentEvent(raw, "en");
     expect(message).toMatchObject({
       role: "status",
-      content: "Setting up your project...",
+      content: "Setting up your project... this is the fun part",
       toolName: "Bash",
     });
-    expect(activity).toBe("Setting up your project...");
+    expect(activity).toBe("Setting up your project... this is the fun part");
   });
 
   it('maps "npm run build" bash to friendly status (he)', () => {
@@ -93,7 +112,7 @@ describe("parseAgentEvent", () => {
     const { message } = parseAgentEvent(raw, "he");
     expect(message).toMatchObject({
       role: "status",
-      content: "בודק שהכל עובד...",
+      content: "...בודק שהכל עובד. אצבעות",
     });
   });
 
@@ -303,35 +322,41 @@ describe("parseAgentEvent", () => {
     expect(parseAgentEvent({ type: "unknown_type" }, "en").message).toBeNull();
   });
 
-  // --- skipBlocks dedup ---
-  it("skips already-processed blocks when skipBlocks is provided", () => {
+  // --- seenBlockIds dedup ---
+  it("skips already-seen blocks via seenBlockIds", () => {
     const raw = {
       type: "assistant",
       message: {
         content: [
-          { type: "text", text: "First message" },
-          { type: "text", text: "Second message" },
+          { type: "text", text: "First message", id: "block-1" },
+          { type: "text", text: "Second message", id: "block-2" },
         ],
       },
     };
-    // First call: no skip, should return first block
-    const { message: msg1 } = parseAgentEvent(raw, "en", undefined, 0);
-    expect(msg1?.content).toBe("First message");
+    const seen = new Set<string>();
+    // First call: returns both blocks, first message wins in our wrapper
+    const results1 = _parseAgentEvent(raw, "en", undefined, seen);
+    expect(results1.length).toBe(2);
+    expect(results1[0].message?.content).toBe("First message");
+    expect(results1[1].message?.content).toBe("Second message");
+    expect(seen.has("block-1")).toBe(true);
+    expect(seen.has("block-2")).toBe(true);
 
-    // Second call: skip 1, should return second block
-    const { message: msg2 } = parseAgentEvent(raw, "en", undefined, 1);
-    expect(msg2?.content).toBe("Second message");
+    // Second call with same seen set: both blocks skipped
+    const results2 = _parseAgentEvent(raw, "en", undefined, seen);
+    expect(results2.length).toBe(0);
   });
 
-  it("returns null when all blocks are skipped", () => {
+  it("returns empty array when all blocks are already seen", () => {
     const raw = {
       type: "assistant",
       message: {
-        content: [{ type: "text", text: "Already seen" }],
+        content: [{ type: "text", text: "Already seen", id: "block-x" }],
       },
     };
-    const { message } = parseAgentEvent(raw, "en", undefined, 1);
-    expect(message).toBeNull();
+    const seen = new Set<string>(["block-x"]);
+    const results = _parseAgentEvent(raw, "en", undefined, seen);
+    expect(results.length).toBe(0);
   });
 
   // --- Activity tracking ---
@@ -354,6 +379,6 @@ describe("parseAgentEvent", () => {
       },
     };
     const { activity } = parseAgentEvent(raw, "en");
-    expect(activity).toBe("Adding components...");
+    expect(activity).toBe("Grabbing the tools...");
   });
 });
