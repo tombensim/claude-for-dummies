@@ -7,11 +7,13 @@ import { useAppStore } from "@/lib/store";
 
 interface SuggestionChipsProps {
   onSelect: (prefill: string) => void;
+  forceShow?: boolean;
 }
 
-export default function SuggestionChips({ onSelect }: SuggestionChipsProps) {
+export default function SuggestionChips({ onSelect, forceShow }: SuggestionChipsProps) {
   const t = useTranslations("Workspace");
   const chipsVisible = useAppStore((s) => s.chipsVisible);
+  const visible = forceShow || chipsVisible;
 
   const chips = [
     { label: t("chipAddFeature"), prefill: t("prefillAddFeature"), icon: Plus },
@@ -21,7 +23,7 @@ export default function SuggestionChips({ onSelect }: SuggestionChipsProps) {
 
   return (
     <AnimatePresence>
-      {chipsVisible && (
+      {visible && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

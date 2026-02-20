@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { type ImageAttachment } from "@/lib/store";
+import { type ImageAttachment, useAppStore } from "@/lib/store";
 import ChatHistory from "./ChatHistory";
 import LiveActivityBar from "./LiveActivityBar";
 import ChatInput from "./ChatInput";
@@ -23,6 +23,8 @@ export default function ChatPanel({
   isWorkspaceMode = false,
 }: ChatPanelProps) {
   const [prefill, setPrefill] = useState("");
+  const currentStep = useAppStore((s) => s.currentStep);
+  const showChips = isWorkspaceMode || currentStep >= 5;
 
   function handleChipSelect(text: string) {
     setPrefill(text);
@@ -39,7 +41,7 @@ export default function ChatPanel({
       {!isWorkspaceMode && <PlanningHeader />}
       <ChatHistory onAnswer={handleSend} />
       <LiveActivityBar />
-      {isWorkspaceMode && <SuggestionChips onSelect={handleChipSelect} />}
+      {showChips && <SuggestionChips onSelect={handleChipSelect} forceShow={currentStep >= 5} />}
       <ChatInput
         onSend={handleSend}
         prefill={prefill}

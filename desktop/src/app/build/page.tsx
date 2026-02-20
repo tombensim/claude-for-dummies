@@ -225,6 +225,7 @@ export default function BuildPage() {
             if (newPhase !== oldPhase) {
               st.setPhaseTransition({ from: oldPhase, to: newPhase });
             }
+
           },
           onLiveUrl: (url) => {
             const st = useAppStore.getState();
