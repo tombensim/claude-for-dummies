@@ -83,7 +83,12 @@ export default function SetupPage() {
         } catch {}
       }
       if (cancelled) return;
-      markDone(1);
+      // Only mark done if tools are actually available
+      if (runtimeStatus.nodeReady && runtimeStatus.gitReady) {
+        markDone(1);
+      } else {
+        markActionNeeded(1);
+      }
 
       // Step 2: Connecting Claude — check Claude binary
       if (cancelled) return;
@@ -104,7 +109,12 @@ export default function SetupPage() {
         }
       }
       if (cancelled) return;
-      markDone(2);
+      // Only mark done if Claude is actually available
+      if (runtimeStatus.claudeReady) {
+        markDone(2);
+      } else {
+        markActionNeeded(2);
+      }
 
       // Step 3: Setting up workspace
       if (cancelled) return;
@@ -120,13 +130,16 @@ export default function SetupPage() {
       if (cancelled) return;
       markDone(4);
 
+      const allDepsReady = runtimeStatus.nodeReady && runtimeStatus.gitReady && runtimeStatus.claudeReady;
       if (!cancelled) {
-        setRuntimeReady(true);
+        setRuntimeReady(allDepsReady);
         setClaudeAuthenticated(runtimeStatus.claudeReady);
-        setAllDone(true);
-        setTimeout(() => {
-          if (!cancelled) router.push("/welcome");
-        }, 1200);
+        setAllDone(allDepsReady);
+        if (allDepsReady) {
+          setTimeout(() => {
+            if (!cancelled) router.push("/welcome");
+          }, 1200);
+        }
       }
     }
 
