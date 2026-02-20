@@ -3,7 +3,6 @@ const { execSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const log = require("electron-log/main");
-const { findClaude } = require("./find-claude");
 
 const LOG_DIR = path.join(require("os").homedir(), ".claude-for-beginners", "logs");
 
@@ -33,7 +32,11 @@ function setupSystemIPC({ isKnownProjectPath }) {
       gitReady = true;
     } catch {}
 
-    const claudeReady = findClaude() !== null;
+    let claudeReady = false;
+    try {
+      execSync("claude --version", { timeout: 5000 });
+      claudeReady = true;
+    } catch {}
 
     const status = { nodeReady, gitReady, claudeReady };
     log.debug("Runtime status:", status);

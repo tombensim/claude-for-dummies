@@ -35,12 +35,33 @@ export default function ChatPanel({
   const showChips = isWorkspaceMode || currentStep >= 5;
 
   // Show plan approval card when: wizard mode, plan mode, not streaming,
-  // and there are assistant messages (Claude has responded with a plan)
+  // and the last assistant message signals that the plan is ready
+  // (the skill ends with "Sound good?" / "נשמע טוב?" after presenting the plan)
+  const lastAssistantMsg = [...messages]
+    .reverse()
+    .find((m) => m.role === "assistant" && !m.toolName);
+  const planReadySignals = [
+    "sound good",
+    "נשמע טוב",
+    "נשמע לך",
+    "מה דעתך",
+    "מתאים לך",
+    "shall we",
+    "ready to",
+    "let's build",
+    "נתחיל",
+    "יאללה",
+  ];
+  const hasPlanReadySignal =
+    !!lastAssistantMsg &&
+    planReadySignals.some((signal) =>
+      lastAssistantMsg.content.toLowerCase().includes(signal)
+    );
   const showPlanApproval =
     !isWorkspaceMode &&
     buildMode === "plan" &&
     !isStreaming &&
-    messages.some((m) => m.role === "assistant");
+    hasPlanReadySignal;
 
   // Show SoulNarrator briefly when step changes (wizard mode only)
   const [showNarrator, setShowNarrator] = useState(false);
