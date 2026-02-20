@@ -104,10 +104,9 @@ export async function POST(req: NextRequest) {
       ? `${planModePrefix}[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
       : `${planModePrefix}${prompt}${imageSuffix}`;
 
-  const permissionArgs =
-    buildMode === "plan"
-      ? ["--permission-mode", "plan"]
-      : ["--dangerously-skip-permissions"];
+  // Always use skip-permissions — plan mode is enforced via prompt prefix,
+  // not CLI flags. --permission-mode plan blocks MCP tools like AskUserQuestion.
+  const permissionArgs = ["--dangerously-skip-permissions"];
 
   const args = [
     "--print",
