@@ -1,0 +1,16 @@
+{
+  "name": "cc4d-demo-video",
+  "version": "4.0.0",
+  "private": true,
+  "scripts": {
+    "build": "npx remotion render src/index.tsx DemoV4 out/cc4d-demo-v4.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.242",
+    "@remotion/bundler": "4.0.242",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "remotion": "4.0.242",
+    "typescript": "^5.0.0"
+  }
+}
