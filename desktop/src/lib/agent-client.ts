@@ -147,287 +147,262 @@ export interface ParseResult {
   activity?: string | null;
 }
 
-export function parseAgentEvent(
+// ---------------------------------------------------------------------------
+// Focused parsers — each handles one event type
+// ---------------------------------------------------------------------------
+
+function parseUserEvent(
   raw: Record<string, unknown>,
-  locale: "he" | "en",
-  callbacks?: AgentCallbacks,
-  skipBlocks = 0
+  callbacks?: AgentCallbacks
 ): ParseResult {
-  const type = raw.type as string;
+  const message = raw.message as Record<string, unknown> | undefined;
+  const content = message?.content as Array<Record<string, unknown>> | undefined;
+  if (!Array.isArray(content)) return { message: null };
+
+  for (const block of content) {
+    if (block.type === "tool_result") {
+      let resultContent = "";
+      if (typeof block.content === "string") {
+        resultContent = block.content;
+      } else if (Array.isArray(block.content)) {
+        resultContent = (block.content as Array<Record<string, unknown>>)
+          .filter((b) => b.type === "text")
+          .map((b) => b.text as string)
+          .join("\n");
+      }
+      const localhostMatch = resultContent.match(
+        /https?:\/\/localhost:(\d+)/
+      );
+      if (localhostMatch) {
+        callbacks?.onPreviewReady?.(localhostMatch[0]);
+      }
+      if (/ready in/i.test(resultContent) && localhostMatch) {
+        callbacks?.onPreviewReady?.(localhostMatch[0]);
+      }
+    }
+  }
+  return { message: null };
+}
+
+function parseAssistantTextBlock(
+  block: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks?: AgentCallbacks
+): ParseResult {
+  const text = (block.text as string) || "";
+  if (!text.trim()) return { message: null };
   const now = Date.now();
 
-  // Skip system/init, rate_limit messages
-  if (type === "system" || type === "rate_limit_event") {
-    return { message: null };
+  // Detect Vercel deployment URL → hint step 9 (celebrate)
+  const urlMatch = text.match(/https:\/\/[\w-]+\.vercel\.app/);
+  if (urlMatch) {
+    callbacks?.onLiveUrl?.(urlMatch[0]);
+    callbacks?.onStepHint?.(9);
   }
 
-  // Parse user (tool_result) events for preview URLs and dev server readiness
-  if (type === "user") {
-    const message = raw.message as Record<string, unknown> | undefined;
-    const content = message?.content as Array<Record<string, unknown>> | undefined;
-    if (Array.isArray(content)) {
-      for (const block of content) {
-        if (block.type === "tool_result") {
-          // content can be a string or an array of content blocks
-          let resultContent = "";
-          if (typeof block.content === "string") {
-            resultContent = block.content;
-          } else if (Array.isArray(block.content)) {
-            resultContent = (block.content as Array<Record<string, unknown>>)
-              .filter((b) => b.type === "text")
-              .map((b) => b.text as string)
-              .join("\n");
-          }
-          // Detect localhost URL in tool output (e.g. "Local: http://localhost:3000")
-          const localhostMatch = resultContent.match(
-            /https?:\/\/localhost:(\d+)/
-          );
-          if (localhostMatch) {
-            callbacks?.onPreviewReady?.(localhostMatch[0]);
-          }
-          // Detect Next.js "Ready in" or Vite "ready in" pattern
-          if (/ready in/i.test(resultContent) && localhostMatch) {
-            callbacks?.onPreviewReady?.(localhostMatch[0]);
-          }
-        }
-      }
-    }
-    return { message: null };
+  // Detect text that looks like multi-choice questions
+  const questionData = parseTextQuestions(text);
+  if (questionData) {
+    return {
+      message: {
+        id: `question-${uid()}`,
+        role: "assistant",
+        content: text,
+        timestamp: now,
+        questionData,
+      },
+    };
   }
 
-  // Assistant message — contains content blocks
-  if (type === "assistant") {
-    const message = raw.message as Record<string, unknown> | undefined;
-    if (!message) return { message: null };
+  return {
+    message: {
+      id: `msg-${uid()}`,
+      role: "assistant",
+      content: text,
+      timestamp: now,
+    },
+  };
+}
 
-    const content = message.content as
-      | Array<Record<string, unknown>>
-      | undefined;
-    if (!Array.isArray(content)) return { message: null };
+function parseToolUseBash(
+  toolInput: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks?: AgentCallbacks
+): ParseResult {
+  const command = toolInput.command as string;
+  const now = Date.now();
 
-    // Process only NEW content blocks (skip already-processed ones)
-    for (let i = skipBlocks; i < content.length; i++) {
-      const block = content[i];
-      const blockType = block.type as string;
+  // Detect dev server start → hint step 5
+  if (command.includes("npm run dev") || command.includes("next dev")) {
+    callbacks?.onDevServerDetected?.();
+    callbacks?.onStepHint?.(5);
+  }
 
-      // Text block — show as assistant message + detect live URLs
-      if (blockType === "text") {
-        const text = (block.text as string) || "";
-        if (!text.trim()) continue;
+  // Detect build command → hint step 4
+  if (command.includes("npm run build") || command.includes("next build")) {
+    callbacks?.onStepHint?.(4);
+  }
 
-        // Detect Vercel deployment URL → hint step 9 (celebrate)
-        const urlMatch = text.match(/https:\/\/[\w-]+\.vercel\.app/);
-        if (urlMatch) {
-          callbacks?.onLiveUrl?.(urlMatch[0]);
-          callbacks?.onStepHint?.(9);
-        }
+  // Detect deploy commands → hint step 8
+  if (
+    command.includes("npx vercel") ||
+    command.includes("vercel deploy") ||
+    command.includes("vercel --prod")
+  ) {
+    callbacks?.onStepHint?.(8);
+  }
 
-        // Note: step 7 (offer-to-ship) is conversation-driven, detected via progress.sh.
-        // Step 8 (push-and-deploy) is hinted by deploy commands (npx vercel, etc.).
+  // Detect progress completion (canonical mechanism)
+  const progressMatch = command.match(/progress\.sh\s+complete\s+(\d+)/);
+  if (progressMatch) {
+    callbacks?.onStepCompleted?.(parseInt(progressMatch[1], 10));
+  }
 
-        // Fallback: detect text that looks like multi-choice questions
-        const questionData = parseTextQuestions(text);
-        if (questionData) {
-          return {
-            message: {
-              id: `question-${uid()}`,
-              role: "assistant",
-              content: text,
-              timestamp: now,
-              questionData,
-            },
-          };
-        }
+  const friendly = matchToolMessage(command, locale);
+  const statusContent = friendly || (locale === "he" ? "בונה..." : "Building...");
+  return {
+    message: {
+      id: `status-${uid()}`,
+      role: "status",
+      content: statusContent,
+      timestamp: now,
+      toolName: "Bash",
+      toolInput: { command },
+    },
+    activity: statusContent,
+  };
+}
 
-        return {
-          message: {
-            id: `msg-${uid()}`,
-            role: "assistant",
-            content: text,
-            timestamp: now,
-          },
-        };
-      }
+function parseToolUseFileOp(
+  toolName: "Write" | "Edit",
+  toolInput: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks?: AgentCallbacks
+): ParseResult {
+  const now = Date.now();
+  const filePath = toolInput?.file_path as string | undefined;
 
-      // Tool use block — translate to friendly status
-      if (blockType === "tool_use") {
-        const toolName = block.name as string;
-        const toolInput = block.input as
-          | Record<string, unknown>
-          | undefined;
+  if (!filePath) {
+    const statusContent =
+      locale === "he" ? "מבצע שינויים..." : "Making changes...";
+    return {
+      message: {
+        id: `status-${uid()}`,
+        role: "status",
+        content: statusContent,
+        timestamp: now,
+        toolName,
+      },
+      activity: statusContent,
+    };
+  }
 
-        // Bash commands → friendly message + detect dev server / progress
-        if (toolName === "Bash" && toolInput?.command) {
-          const command = toolInput.command as string;
+  callbacks?.onFileChanged?.(filePath);
+  if (!filePath.endsWith("CLAUDE.md") && !filePath.includes("progress.sh")) {
+    callbacks?.onStepHint?.(4);
+  }
+  const fileName = basename(filePath);
+  const isWrite = toolName === "Write";
+  const statusContent = isWrite
+    ? locale === "he"
+      ? `יוצר ${fileName}...`
+      : `Creating ${fileName}...`
+    : locale === "he"
+      ? `...${fileName} עורך`
+      : `Editing ${fileName}...`;
 
-          // Detect dev server start → hint step 5 (react-and-iterate)
-          if (command.includes("npm run dev") || command.includes("next dev")) {
-            callbacks?.onDevServerDetected?.();
-            callbacks?.onStepHint?.(5);
-          }
+  return {
+    message: {
+      id: `status-${uid()}`,
+      role: "status",
+      content: statusContent,
+      timestamp: now,
+      toolName,
+      toolInput: { file_path: filePath },
+    },
+    activity: statusContent,
+  };
+}
 
-          // Detect build command → hint step 4 (scaffold-and-build)
-          if (command.includes("npm run build") || command.includes("next build")) {
-            callbacks?.onStepHint?.(4);
-          }
+function parseToolUseBlock(
+  block: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks?: AgentCallbacks
+): ParseResult {
+  const toolName = block.name as string;
+  const toolInput = block.input as Record<string, unknown> | undefined;
 
-          // Detect deploy commands → hint step 8 (push-and-deploy)
-          if (
-            command.includes("npx vercel") ||
-            command.includes("vercel deploy") ||
-            command.includes("vercel --prod")
-          ) {
-            callbacks?.onStepHint?.(8);
-          }
+  if (toolName === "Bash" && toolInput?.command) {
+    return parseToolUseBash(toolInput, locale, callbacks);
+  }
 
-          // Detect progress completion (canonical mechanism)
-          const progressMatch = command.match(/progress\.sh\s+complete\s+(\d+)/);
-          if (progressMatch) {
-            callbacks?.onStepCompleted?.(parseInt(progressMatch[1], 10));
-          }
+  if ((toolName === "Write" || toolName === "Edit")) {
+    return parseToolUseFileOp(toolName, toolInput || {}, locale, callbacks);
+  }
 
-          const friendly = matchToolMessage(command, locale);
-          const statusContent = friendly || (locale === "he" ? "בונה..." : "Building...");
-          return {
-            message: {
-              id: `status-${uid()}`,
-              role: "status",
-              content: statusContent,
-              timestamp: now,
-              toolName,
-              toolInput: { command },
-            },
-            activity: statusContent,
-          };
-        }
+  if (toolName === "Glob" || toolName === "Grep" || toolName === "Read") {
+    const activityText =
+      locale === "he" ? "בודק קבצים..." : "Checking files...";
+    return { message: null, activity: activityText };
+  }
 
-        // Write → show filename + notify file change + hint step 4
-        if (toolName === "Write" && toolInput?.file_path) {
-          callbacks?.onFileChanged?.(toolInput.file_path as string);
-          // Writing source files signals scaffold-and-build (step 4)
-          const filePath = toolInput.file_path as string;
-          if (!filePath.endsWith("CLAUDE.md") && !filePath.includes("progress.sh")) {
-            callbacks?.onStepHint?.(4);
-          }
-          const fileName = basename(filePath);
-          const statusContent =
-            locale === "he"
-              ? `יוצר ${fileName}...`
-              : `Creating ${fileName}...`;
-          return {
-            message: {
-              id: `status-${uid()}`,
-              role: "status",
-              content: statusContent,
-              timestamp: now,
-              toolName,
-              toolInput: { file_path: filePath },
-            },
-            activity: statusContent,
-          };
-        }
+  if (toolName === "AskUserQuestion") {
+    callbacks?.onStepHint?.(3);
+    return {
+      message: {
+        id: `question-${uid()}`,
+        role: "assistant",
+        content: "",
+        timestamp: Date.now(),
+        toolName,
+        questionData: toolInput as ChatMessage["questionData"],
+      },
+    };
+  }
 
-        // Edit → show filename + notify file change + hint step 4
-        if (toolName === "Edit" && toolInput?.file_path) {
-          callbacks?.onFileChanged?.(toolInput.file_path as string);
-          const filePath = toolInput.file_path as string;
-          if (!filePath.endsWith("CLAUDE.md") && !filePath.includes("progress.sh")) {
-            callbacks?.onStepHint?.(4);
-          }
-          const fileName = basename(filePath);
-          const statusContent =
-            locale === "he"
-              ? `...${fileName} עורך`
-              : `Editing ${fileName}...`;
-          return {
-            message: {
-              id: `status-${uid()}`,
-              role: "status",
-              content: statusContent,
-              timestamp: now,
-              toolName,
-              toolInput: { file_path: filePath },
-            },
-            activity: statusContent,
-          };
-        }
+  // Other tools → no visible message
+  return { message: null };
+}
 
-        // Write/Edit without file_path (fallback)
-        if (toolName === "Write" || toolName === "Edit") {
-          const statusContent =
-            locale === "he" ? "מבצע שינויים..." : "Making changes...";
-          return {
-            message: {
-              id: `status-${uid()}`,
-              role: "status",
-              content: statusContent,
-              timestamp: now,
-              toolName,
-            },
-            activity: statusContent,
-          };
-        }
+function parseAssistantEvent(
+  raw: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks: AgentCallbacks | undefined,
+  skipBlocks: number
+): ParseResult {
+  const message = raw.message as Record<string, unknown> | undefined;
+  if (!message) return { message: null };
 
-        // Glob/Grep/Read → no visible message, but update activity bar
-        if (
-          toolName === "Glob" ||
-          toolName === "Grep" ||
-          toolName === "Read"
-        ) {
-          const activityText =
-            locale === "he" ? "בודק קבצים..." : "Checking files...";
-          return { message: null, activity: activityText };
-        }
+  const content = message.content as Array<Record<string, unknown>> | undefined;
+  if (!Array.isArray(content)) return { message: null };
 
-        // AskUserQuestion → pass through as question + hint step 3 (gather-idea)
-        if (toolName === "AskUserQuestion") {
-          callbacks?.onStepHint?.(3);
-          return {
-            message: {
-              id: `question-${uid()}`,
-              role: "assistant",
-              content: "",
-              timestamp: now,
-              toolName,
-              questionData: toolInput as ChatMessage["questionData"],
-            },
-          };
-        }
+  // Process only NEW content blocks (skip already-processed ones)
+  for (let i = skipBlocks; i < content.length; i++) {
+    const block = content[i];
+    const blockType = block.type as string;
 
-        // Other tools → generic status
-        return { message: null };
-      }
+    if (blockType === "text") {
+      const result = parseAssistantTextBlock(block, locale, callbacks);
+      if (result.message) return result;
+      continue;
     }
 
-    return { message: null };
-  }
-
-  // Final result
-  if (type === "result") {
-    const subtype = raw.subtype as string;
-
-    if (subtype === "error" || raw.is_error) {
-      return {
-        message: {
-          id: `error-${uid()}`,
-          role: "status",
-          content:
-            locale === "he"
-              ? "אופס. שנייה..."
-              : "Whoops. Give me a sec...",
-          timestamp: now,
-        },
-        activity: null,
-      };
+    if (blockType === "tool_use") {
+      const result = parseToolUseBlock(block, locale, callbacks);
+      if (result.message || result.activity !== undefined) return result;
     }
-
-    // Success result — skip, the content was already streamed via assistant text blocks.
-    // Emitting it again would cause duplicate messages.
-    return { message: null, activity: null };
   }
 
-  // Error
-  if (type === "error") {
+  return { message: null };
+}
+
+function parseResultEvent(
+  raw: Record<string, unknown>,
+  locale: "he" | "en"
+): ParseResult {
+  const subtype = raw.subtype as string;
+
+  if (subtype === "error" || raw.is_error) {
     return {
       message: {
         id: `error-${uid()}`,
@@ -436,10 +411,57 @@ export function parseAgentEvent(
           locale === "he"
             ? "אופס. שנייה..."
             : "Whoops. Give me a sec...",
-        timestamp: now,
+        timestamp: Date.now(),
       },
       activity: null,
     };
+  }
+
+  // Success result — skip, content was already streamed via assistant text blocks.
+  return { message: null, activity: null };
+}
+
+function parseErrorEvent(locale: "he" | "en"): ParseResult {
+  return {
+    message: {
+      id: `error-${uid()}`,
+      role: "status",
+      content:
+        locale === "he"
+          ? "אופס. שנייה..."
+          : "Whoops. Give me a sec...",
+      timestamp: Date.now(),
+    },
+    activity: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Main router — delegates to focused parsers
+// ---------------------------------------------------------------------------
+
+export function parseAgentEvent(
+  raw: Record<string, unknown>,
+  locale: "he" | "en",
+  callbacks?: AgentCallbacks,
+  skipBlocks = 0
+): ParseResult {
+  const type = raw.type as string;
+
+  if (type === "system" || type === "rate_limit_event") {
+    return { message: null };
+  }
+  if (type === "user") {
+    return parseUserEvent(raw, callbacks);
+  }
+  if (type === "assistant") {
+    return parseAssistantEvent(raw, locale, callbacks, skipBlocks);
+  }
+  if (type === "result") {
+    return parseResultEvent(raw, locale);
+  }
+  if (type === "error") {
+    return parseErrorEvent(locale);
   }
 
   return { message: null };
