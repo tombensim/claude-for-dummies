@@ -14,6 +14,7 @@ import { useDebugStore } from "@/lib/debug-store";
 import { useDebugShortcut } from "@/lib/use-debug-shortcut";
 import ChatPanel from "@/components/chat/ChatPanel";
 import LivePreview from "@/components/preview/LivePreview";
+import PhaseTransition from "@/components/progress/PhaseTransition";
 import DebugTerminal from "@/components/debug/DebugTerminal";
 import ProjectDrawer from "@/components/project/ProjectDrawer";
 import ProjectDrawerToggle from "@/components/project/ProjectDrawerToggle";
@@ -217,8 +218,15 @@ export default function BuildPage() {
           },
           onStepCompleted: (step) => {
             const st = useAppStore.getState();
+            const oldPhase = st.phase;
             st.completeStep(step);
-            st.setStep(step + 1, getPhaseForStep(step + 1));
+            const newPhase = getPhaseForStep(step + 1);
+            st.setStep(step + 1, newPhase);
+
+            // Trigger phase transition overlay when phase changes
+            if (newPhase !== oldPhase) {
+              st.setPhaseTransition({ from: oldPhase, to: newPhase });
+            }
           },
           onLiveUrl: (url) => {
             const st = useAppStore.getState();
@@ -320,6 +328,11 @@ export default function BuildPage() {
         </motion.div>
       )}
 
+      <PhaseTransition
+        transition={store.phaseTransition}
+        locale={store.locale}
+        onDismiss={() => store.setPhaseTransition(null)}
+      />
       <DebugTerminal />
       <ProjectDrawer />
     </div>

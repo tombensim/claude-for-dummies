@@ -97,6 +97,9 @@ interface AppState {
   runtimeReady: boolean;
   claudeAuthenticated: boolean;
 
+  // Phase transitions
+  phaseTransition: { from: number; to: number } | null;
+
   // Preview
   previewUrl: string | null;
   previewMode: "desktop" | "mobile";
@@ -124,6 +127,7 @@ interface AppState {
   setDesignRef: (ref: string | null) => void;
   setRuntimeReady: (ready: boolean) => void;
   setClaudeAuthenticated: (auth: boolean) => void;
+  setPhaseTransition: (transition: { from: number; to: number } | null) => void;
   setPreviewUrl: (url: string | null) => void;
   setPreviewMode: (mode: "desktop" | "mobile") => void;
   setActiveProjectId: (id: string | null) => void;
@@ -164,6 +168,7 @@ const initialState = {
   pendingChatMessage: null,
   runtimeReady: false,
   claudeAuthenticated: false,
+  phaseTransition: null,
   previewUrl: null,
   previewMode: "desktop" as const,
 };
@@ -200,6 +205,7 @@ export const useAppStore = create<AppState>()(
       setRuntimeReady: (runtimeReady) => set({ runtimeReady }),
       setClaudeAuthenticated: (claudeAuthenticated) =>
         set({ claudeAuthenticated }),
+      setPhaseTransition: (phaseTransition) => set({ phaseTransition }),
       setPreviewUrl: (previewUrl) => set({ previewUrl }),
       setPreviewMode: (previewMode) => set({ previewMode }),
       setActiveProjectId: (activeProjectId) => set({ activeProjectId }),
