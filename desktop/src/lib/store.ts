@@ -69,6 +69,9 @@ interface AppState {
   isWorkspaceMode: boolean;
   chipsVisible: boolean;
 
+  // Build mode: 'plan' = Claude gathers requirements (no tools), 'build' = Claude executes
+  buildMode: "plan" | "build";
+
   // Chat
   messages: ChatMessage[];
   isStreaming: boolean;
@@ -111,6 +114,7 @@ interface AppState {
   setStep: (step: number, phase: number) => void;
   completeStep: (step: number) => void;
   setWorkspaceMode: (isWorkspace: boolean) => void;
+  setBuildMode: (mode: "plan" | "build") => void;
   hideChips: () => void;
   addMessage: (msg: ChatMessage) => void;
   loadMessages: (msgs: ChatMessage[]) => void;
@@ -150,6 +154,7 @@ const initialState = {
   completedSteps: [],
   isWorkspaceMode: false,
   chipsVisible: false,
+  buildMode: "plan" as const,
   messages: [],
   isStreaming: false,
   messagesLoaded: false,
@@ -191,14 +196,16 @@ export const useChatStore = () =>
     setCurrentActivity: s.setCurrentActivity,
   }));
 
-/** Progress slice: step, phase, completed steps */
+/** Progress slice: step, phase, completed steps, build mode */
 export const useProgressStore = () =>
   useAppStore((s) => ({
     currentStep: s.currentStep,
     phase: s.phase,
     completedSteps: s.completedSteps,
+    buildMode: s.buildMode,
     setStep: s.setStep,
     completeStep: s.completeStep,
+    setBuildMode: s.setBuildMode,
     phaseTransition: s.phaseTransition,
     setPhaseTransition: s.setPhaseTransition,
   }));
@@ -258,6 +265,7 @@ export const useAppStore = create<AppState>()(
           completedSteps: [...new Set([...state.completedSteps, step])],
         })),
       setWorkspaceMode: (isWorkspaceMode) => set({ isWorkspaceMode, chipsVisible: isWorkspaceMode }),
+      setBuildMode: (buildMode) => set({ buildMode }),
       hideChips: () => set({ chipsVisible: false }),
       addMessage: (msg) =>
         set((state) => ({ messages: [...state.messages, msg] })),
@@ -309,6 +317,7 @@ export const useAppStore = create<AppState>()(
             currentStep: 1,
             phase: 0,
             completedSteps: [],
+            buildMode: isWorkspace ? "build" : "plan",
             // Reset transient state — messages loaded by persistence hook
             messages: [],
             isStreaming: false,
@@ -335,6 +344,7 @@ export const useAppStore = create<AppState>()(
         phase: state.phase,
         completedSteps: state.completedSteps,
         isWorkspaceMode: state.isWorkspaceMode,
+        buildMode: state.buildMode,
         projectName: state.projectName,
         liveUrl: state.liveUrl,
         githubUrl: state.githubUrl,

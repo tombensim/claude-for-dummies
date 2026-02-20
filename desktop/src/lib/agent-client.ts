@@ -487,6 +487,7 @@ export function connectToAgent(options: {
   locale: "he" | "en";
   projectDir?: string;
   sessionId?: string;
+  mode?: "plan" | "build";
   onMessage: (msg: ChatMessage) => void;
   onDone: () => void;
   onError: (err: string) => void;
@@ -502,6 +503,7 @@ export function connectToAgent(options: {
     locale: options.locale,
     projectDir: options.projectDir,
     sessionId: options.sessionId,
+    mode: options.mode,
   });
 
   fetch("/api/agent", {

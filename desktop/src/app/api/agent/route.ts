@@ -66,12 +66,14 @@ async function saveImages(
 }
 
 export async function POST(req: NextRequest) {
-  const { prompt, images, locale, projectDir, sessionId } = await req.json();
+  const { prompt, images, locale, projectDir, sessionId, mode } = await req.json();
+  const buildMode: "plan" | "build" = mode === "build" ? "build" : "plan";
 
   const requestId = `req-${Date.now().toString(36)}`;
   agentLog.info(`[${requestId}] New agent request`, {
     locale,
     sessionId: sessionId || null,
+    buildMode,
     promptLength: prompt.length,
     imageCount: images?.length || 0,
     cwd: projectDir || process.cwd(),
@@ -98,11 +100,16 @@ export async function POST(req: NextRequest) {
       ? `[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
       : `${prompt}${imageSuffix}`;
 
+  const permissionArgs =
+    buildMode === "plan"
+      ? ["--permission-mode", "plan"]
+      : ["--dangerously-skip-permissions"];
+
   const args = [
     "--print",
     "--output-format",
     "stream-json",
-    "--dangerously-skip-permissions",
+    ...permissionArgs,
     "--verbose",
   ];
 
