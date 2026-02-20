@@ -7,9 +7,10 @@ import { useAppStore } from "@/lib/store";
 
 interface LivePreviewProps {
   refreshTrigger?: number;
+  onFeedback?: (feedback: string) => void;
 }
 
-export default function LivePreview({ refreshTrigger }: LivePreviewProps) {
+export default function LivePreview({ refreshTrigger, onFeedback }: LivePreviewProps) {
   const t = useTranslations("Build");
   const previewUrl = useAppStore((s) => s.previewUrl);
   const previewMode = useAppStore((s) => s.previewMode);
@@ -28,6 +29,18 @@ export default function LivePreview({ refreshTrigger }: LivePreviewProps) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [refreshTrigger]);
+
+  // Listen for agentation feedback from the preview iframe
+  useEffect(() => {
+    if (!onFeedback) return;
+    function handleMessage(event: MessageEvent) {
+      if (event.data?.type === "agentation-feedback" && event.data.payload) {
+        onFeedback!(String(event.data.payload));
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [onFeedback]);
 
   function handleRefresh() {
     if (webviewRef.current) {

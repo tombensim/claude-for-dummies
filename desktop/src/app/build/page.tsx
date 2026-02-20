@@ -309,7 +309,7 @@ export default function BuildPage() {
         {/* Live preview (shown when dev server is running) */}
         {store.previewUrl && (
           <div className="w-1/2 border-s-2 border-dummy-black/10">
-            <LivePreview refreshTrigger={refreshTrigger} />
+            <LivePreview refreshTrigger={refreshTrigger} onFeedback={(msg) => handleSend(msg)} />
           </div>
         )}
       </div>
