@@ -70,6 +70,55 @@ function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+/**
+ * Detect text that looks like numbered multi-choice questions.
+ * Pattern: numbered lines (1. / 2.) with sub-options (- / a) / b) / •).
+ */
+function parseTextQuestions(
+  text: string
+): ChatMessage["questionData"] | null {
+  const lines = text.split("\n");
+  const questions: Array<{
+    question: string;
+    options: Array<{ label: string; description: string }>;
+  }> = [];
+
+  let currentQuestion: (typeof questions)[0] | null = null;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Check for numbered question: "1. Question" or "1) Question"
+    const qMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/);
+    if (qMatch) {
+      if (currentQuestion && currentQuestion.options.length >= 2) {
+        questions.push(currentQuestion);
+      }
+      currentQuestion = { question: qMatch[2], options: [] };
+      continue;
+    }
+
+    // Check for option: "- Option" or "• Option" or "a) Option"
+    if (currentQuestion) {
+      const oMatch = trimmed.match(/^(?:[-•]\s*|[a-d]\)\s*)(.+)/);
+      if (oMatch) {
+        currentQuestion.options.push({
+          label: oMatch[1].trim(),
+          description: "",
+        });
+      }
+    }
+  }
+
+  // Push last question
+  if (currentQuestion && currentQuestion.options.length >= 2) {
+    questions.push(currentQuestion);
+  }
+
+  // Only return if we found at least 1 question with 2+ options
+  return questions.length > 0 ? { questions } : null;
+}
+
 export interface AgentCallbacks {
   onDevServerDetected?: () => void;
   onFileChanged?: (filePath: string) => void;
@@ -132,6 +181,20 @@ export function parseAgentEvent(
         const urlMatch = text.match(/https:\/\/[\w-]+\.vercel\.app/);
         if (urlMatch && callbacks?.onLiveUrl) {
           callbacks.onLiveUrl(urlMatch[0]);
+        }
+
+        // Fallback: detect text that looks like multi-choice questions
+        const questionData = parseTextQuestions(text);
+        if (questionData) {
+          return {
+            message: {
+              id: `question-${uid()}`,
+              role: "assistant",
+              content: text,
+              timestamp: now,
+              questionData,
+            },
+          };
         }
 
         return {
