@@ -32,21 +32,28 @@ export default function ChatPanel({
   // Show SoulNarrator briefly when step changes (wizard mode only)
   const [showNarrator, setShowNarrator] = useState(false);
   const lastNarratedStep = useRef(0);
+  const narratorShownAt = useRef(0);
 
   useEffect(() => {
     if (isWorkspaceMode) return;
     if (currentStep !== lastNarratedStep.current) {
       lastNarratedStep.current = currentStep;
+      narratorShownAt.current = Date.now();
       setShowNarrator(true);
       const timer = setTimeout(() => setShowNarrator(false), 6000);
       return () => clearTimeout(timer);
     }
   }, [currentStep, isWorkspaceMode]);
 
-  // Hide narrator once streaming starts
+  // Hide narrator when streaming stops, but only after minimum display time (3s).
+  // Step changes happen DURING streaming (via onStepHint), so we can't hide
+  // on streaming start — that would immediately cancel the narrator.
   useEffect(() => {
-    if (isStreaming && showNarrator) {
-      setShowNarrator(false);
+    if (!isStreaming && showNarrator) {
+      const elapsed = Date.now() - narratorShownAt.current;
+      const remaining = Math.max(0, 3000 - elapsed);
+      const timer = setTimeout(() => setShowNarrator(false), remaining);
+      return () => clearTimeout(timer);
     }
   }, [isStreaming, showNarrator]);
 

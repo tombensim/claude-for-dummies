@@ -168,7 +168,16 @@ export function parseAgentEvent(
     if (Array.isArray(content)) {
       for (const block of content) {
         if (block.type === "tool_result") {
-          const resultContent = (block.content as string) || "";
+          // content can be a string or an array of content blocks
+          let resultContent = "";
+          if (typeof block.content === "string") {
+            resultContent = block.content;
+          } else if (Array.isArray(block.content)) {
+            resultContent = (block.content as Array<Record<string, unknown>>)
+              .filter((b) => b.type === "text")
+              .map((b) => b.text as string)
+              .join("\n");
+          }
           // Detect localhost URL in tool output (e.g. "Local: http://localhost:3000")
           const localhostMatch = resultContent.match(
             /https?:\/\/localhost:(\d+)/

@@ -204,12 +204,18 @@ export default function BuildPage() {
         },
         callbacks: {
           onDevServerDetected: () => {
-            // Poll port 3000 and set preview URL when ready
-            window.electronAPI?.pollPort?.(3000).then((ready: boolean) => {
-              if (ready) {
-                useAppStore.getState().setPreviewUrl("http://localhost:3000");
-              }
-            });
+            const isElectron = typeof window !== "undefined" && !!window.electronAPI?.pollPort;
+            if (isElectron) {
+              // Poll port 3000 and set preview URL when ready
+              window.electronAPI!.pollPort!(3000).then((ready: boolean) => {
+                if (ready) {
+                  useAppStore.getState().setPreviewUrl("http://localhost:3000");
+                }
+              });
+            } else {
+              // Browser dev mode: set preview URL directly (can't poll ports)
+              useAppStore.getState().setPreviewUrl("http://localhost:3000");
+            }
           },
           onFileChanged: () => {
             setRefreshTrigger((c) => c + 1);
