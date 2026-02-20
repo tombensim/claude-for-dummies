@@ -364,36 +364,46 @@ function parseToolUseBlock(
   return { message: null };
 }
 
+/**
+ * Parse assistant event, using a Set of seen block IDs for dedup.
+ * Returns ALL new results (not just the first), so no blocks are dropped.
+ * The seenBlockIds set is mutated — caller retains it across events.
+ */
 function parseAssistantEvent(
   raw: Record<string, unknown>,
   locale: "he" | "en",
   callbacks: AgentCallbacks | undefined,
-  skipBlocks: number
-): ParseResult {
+  seenBlockIds: Set<string>
+): ParseResult[] {
   const message = raw.message as Record<string, unknown> | undefined;
-  if (!message) return { message: null };
+  if (!message) return [];
 
   const content = message.content as Array<Record<string, unknown>> | undefined;
-  if (!Array.isArray(content)) return { message: null };
+  if (!Array.isArray(content)) return [];
 
-  // Process only NEW content blocks (skip already-processed ones)
-  for (let i = skipBlocks; i < content.length; i++) {
-    const block = content[i];
+  const results: ParseResult[] = [];
+
+  for (const block of content) {
+    // Use block id for dedup; fall back to index-based key
+    const blockId = (block.id as string) || `${block.type}-${content.indexOf(block)}`;
+    if (seenBlockIds.has(blockId)) continue;
+    seenBlockIds.add(blockId);
+
     const blockType = block.type as string;
 
     if (blockType === "text") {
       const result = parseAssistantTextBlock(block, locale, callbacks);
-      if (result.message) return result;
+      if (result.message) results.push(result);
       continue;
     }
 
     if (blockType === "tool_use") {
       const result = parseToolUseBlock(block, locale, callbacks);
-      if (result.message || result.activity !== undefined) return result;
+      if (result.message || result.activity !== undefined) results.push(result);
     }
   }
 
-  return { message: null };
+  return results;
 }
 
 function parseResultEvent(
@@ -437,34 +447,35 @@ function parseErrorEvent(locale: "he" | "en"): ParseResult {
 }
 
 // ---------------------------------------------------------------------------
-// Main router — delegates to focused parsers
+// Main router — delegates to focused parsers.
+// Returns an array of results so assistant events can emit multiple blocks.
 // ---------------------------------------------------------------------------
 
 export function parseAgentEvent(
   raw: Record<string, unknown>,
   locale: "he" | "en",
-  callbacks?: AgentCallbacks,
-  skipBlocks = 0
-): ParseResult {
+  callbacks: AgentCallbacks | undefined,
+  seenBlockIds: Set<string>
+): ParseResult[] {
   const type = raw.type as string;
 
   if (type === "system" || type === "rate_limit_event") {
-    return { message: null };
+    return [];
   }
   if (type === "user") {
-    return parseUserEvent(raw, callbacks);
+    return [parseUserEvent(raw, callbacks)];
   }
   if (type === "assistant") {
-    return parseAssistantEvent(raw, locale, callbacks, skipBlocks);
+    return parseAssistantEvent(raw, locale, callbacks, seenBlockIds);
   }
   if (type === "result") {
-    return parseResultEvent(raw, locale);
+    return [parseResultEvent(raw, locale)];
   }
   if (type === "error") {
-    return parseErrorEvent(locale);
+    return [parseErrorEvent(locale)];
   }
 
-  return { message: null };
+  return [];
 }
 
 /**
@@ -501,6 +512,7 @@ export function connectToAgent(options: {
   })
     .then(async (res) => {
       if (!res.ok || !res.body) {
+        useAppStore.getState().setCurrentActivity(null);
         options.onError(`HTTP ${res.status}`);
         return;
       }
@@ -508,7 +520,8 @@ export function connectToAgent(options: {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let lastAssistantBlockCount = 0;
+      // Track seen content block IDs for dedup across cumulative assistant events
+      const seenBlockIds = new Set<string>();
 
       while (true) {
         const { done, value } = await reader.read();
@@ -533,30 +546,15 @@ export function connectToAgent(options: {
               if (parsed.session_id && options.onSessionId) {
                 options.onSessionId(parsed.session_id as string);
               }
-              // Track block count for dedup: assistant events are cumulative,
-              // so we skip already-processed content blocks.
-              // If the new event has FEWER blocks than lastAssistantBlockCount,
-              // it's a new conversation turn (not cumulative) — reset skip to 0.
-              let skipBlocks = 0;
-              if (parsed.type === "assistant") {
-                const content = (parsed.message as Record<string, unknown> | undefined)?.content;
-                const blockCount = Array.isArray(content) ? content.length : 0;
-                skipBlocks = blockCount >= lastAssistantBlockCount ? lastAssistantBlockCount : 0;
-              }
-              const { message: msg, activity } = parseAgentEvent(parsed, options.locale, options.callbacks, skipBlocks);
 
-              // Update block count after processing
-              if (parsed.type === "assistant") {
-                const content = (parsed.message as Record<string, unknown> | undefined)?.content;
-                lastAssistantBlockCount = Array.isArray(content) ? content.length : 0;
-              } else {
-                lastAssistantBlockCount = 0;
-              }
+              const results = parseAgentEvent(parsed, options.locale, options.callbacks, seenBlockIds);
 
-              if (activity !== undefined) {
-                useAppStore.getState().setCurrentActivity(activity);
+              for (const { message: msg, activity } of results) {
+                if (activity !== undefined) {
+                  useAppStore.getState().setCurrentActivity(activity);
+                }
+                if (msg) options.onMessage(msg);
               }
-              if (msg) options.onMessage(msg);
             } catch {
               // Skip unparseable lines
             }
