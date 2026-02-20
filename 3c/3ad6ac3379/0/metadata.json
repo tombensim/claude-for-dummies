@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.4.2",
+  "checkpoint_id": "3c3ad6ac3379",
+  "session_id": "63958f28-7020-4a03-9120-953a1d1b5d3e",
+  "strategy": "manual-commit",
+  "created_at": "2026-02-20T20:05:59.782159Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "desktop/electron/ipc-system.js",
+    "desktop/src/components/chat/ChatPanel.tsx"
+  ],
+  "agent": "Claude Code",
+  "transcript_identifier_at_start": "05707f19-120a-41cc-9f6b-4d582234c351",
+  "token_usage": {
+    "input_tokens": 71,
+    "cache_creation_tokens": 63447,
+    "cache_read_tokens": 1853524,
+    "output_tokens": 2192,
+    "api_call_count": 45
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-02-20T20:05:59.53253Z",
+    "agent_lines": 26,
+    "human_added": 156,
+    "human_modified": 2,
+    "human_removed": 0,
+    "total_committed": 184,
+    "agent_percentage": 14.130434782608695
+  }
+}
