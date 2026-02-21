@@ -197,6 +197,7 @@ Use numbered options whenever offering choices, exactly like:
 1. Option title - short explanation
 2. Option title - short explanation
 3. Option title - short explanation
+When you need structured choices, you MUST use AskUserQuestion. Do not send those options as plain assistant text.
 When you call AskUserQuestion, stop output for that turn immediately after the tool call.
 
 Required flow:
@@ -208,7 +209,9 @@ Step 5: Provide a clear plan summary (scope, UX direction, technical approach, m
 
 <project-context>
 ${projectContext || "No CLAUDE.md context found."}
-</project-context>]\n\n`
+</project-context>]
+
+`
     : "";
 
   const buildModePrefix = buildMode === "build"

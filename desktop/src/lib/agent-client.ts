@@ -76,6 +76,105 @@ function hasPendingQuestion(messages: ChatMessage[]): boolean {
   return !messages.slice(lastQuestionIdx + 1).some((m) => m.role === "user");
 }
 
+function firstNonEmptyString(values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function normalizeQuestionOption(
+  raw: unknown
+): { label: string; description: string } | null {
+  if (typeof raw === "string" && raw.trim()) {
+    return { label: raw.trim(), description: "" };
+  }
+  if (!raw || typeof raw !== "object") return null;
+
+  const option = raw as Record<string, unknown>;
+  const label = firstNonEmptyString([
+    option.label,
+    option.title,
+    option.text,
+    option.value,
+  ]);
+  if (!label) return null;
+
+  const description =
+    firstNonEmptyString([
+      option.description,
+      option.details,
+      option.helpText,
+      option.hint,
+    ]) || "";
+
+  return { label, description };
+}
+
+function normalizeQuestionEntry(
+  questionRaw: unknown,
+  optionsRaw: unknown
+): { question: string; options: Array<{ label: string; description: string }> } | null {
+  if (typeof questionRaw !== "string" || !questionRaw.trim()) return null;
+  if (!Array.isArray(optionsRaw)) return null;
+
+  const options = optionsRaw
+    .map((opt) => normalizeQuestionOption(opt))
+    .filter(
+      (opt): opt is { label: string; description: string } => opt !== null
+    );
+  if (options.length === 0) return null;
+
+  return {
+    question: questionRaw.trim(),
+    options,
+  };
+}
+
+function normalizeAskUserQuestionInput(
+  toolInput: Record<string, unknown> | undefined
+): ChatMessage["questionData"] | null {
+  if (!toolInput) return null;
+
+  // Expected multi-question shape: { questions: [{ question, options }] }
+  if (Array.isArray(toolInput.questions)) {
+    const questions = toolInput.questions
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const record = item as Record<string, unknown>;
+        return normalizeQuestionEntry(
+          firstNonEmptyString([record.question, record.prompt, record.header]),
+          record.options ?? record.choices
+        );
+      })
+      .filter(
+        (
+          q
+        ): q is {
+          question: string;
+          options: Array<{ label: string; description: string }>;
+        } => q !== null
+      );
+
+    if (questions.length > 0) {
+      return { questions };
+    }
+  }
+
+  // Single-question shape used by some tool calls: { question, options }
+  const single = normalizeQuestionEntry(
+    firstNonEmptyString([toolInput.question, toolInput.prompt, toolInput.header]),
+    toolInput.options ?? toolInput.choices
+  );
+  if (single) {
+    return { questions: [single] };
+  }
+
+  return null;
+}
+
 /**
  * Detect text that looks like numbered multi-choice questions.
  * Pattern: numbered lines (1. / 2.) with sub-options (- / a) / b) / •).
@@ -408,6 +507,29 @@ function parseToolUseBlock(
 
   if (toolName === "AskUserQuestion") {
     callbacks?.onStepHint?.(3);
+    const questionData = normalizeAskUserQuestionInput(toolInput);
+
+    if (!questionData) {
+      const fallbackQuestion =
+        firstNonEmptyString([
+          toolInput?.question,
+          toolInput?.prompt,
+          toolInput?.header,
+        ]) ||
+        (locale === "he"
+          ? "יש לי שאלה קצרה לפני שאני ממשיך."
+          : "I have a quick question before I continue.");
+      return {
+        message: {
+          id: `msg-${uid()}`,
+          role: "assistant",
+          content: fallbackQuestion,
+          timestamp: Date.now(),
+          toolName,
+        },
+      };
+    }
+
     return {
       message: {
         id: `question-${uid()}`,
@@ -415,7 +537,7 @@ function parseToolUseBlock(
         content: "",
         timestamp: Date.now(),
         toolName,
-        questionData: toolInput as ChatMessage["questionData"],
+        questionData,
       },
     };
   }
@@ -444,10 +566,13 @@ function parseAssistantEvent(
   const results: ParseResult[] = [];
 
   for (const block of content) {
-    // Use block id for dedup; fall back to index-based key
-    const blockId = (block.id as string) || `${block.type}-${content.indexOf(block)}`;
-    if (seenBlockIds.has(blockId)) continue;
-    seenBlockIds.add(blockId);
+    // Dedup only when the upstream event provides a stable block id.
+    // Synthetic keys (like type/index) can drop valid events across turns.
+    const blockId = typeof block.id === "string" ? block.id.trim() : "";
+    if (blockId) {
+      if (seenBlockIds.has(blockId)) continue;
+      seenBlockIds.add(blockId);
+    }
 
     const blockType = block.type as string;
 

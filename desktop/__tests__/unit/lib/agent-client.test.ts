@@ -400,6 +400,108 @@ describe("parseAgentEvent", () => {
     expect(results.length).toBe(0);
   });
 
+  it("does not drop AskUserQuestion when tool blocks have no ids", () => {
+    const seen = new Set<string>();
+
+    const firstTool = {
+      type: "assistant",
+      message: {
+        content: [
+          {
+            type: "tool_use",
+            name: "Bash",
+            input: { command: "echo hello" },
+          },
+        ],
+      },
+    };
+    const secondTool = {
+      type: "assistant",
+      message: {
+        content: [
+          {
+            type: "tool_use",
+            name: "AskUserQuestion",
+            input: {
+              questions: [
+                {
+                  question: "Pick one",
+                  options: [{ label: "A", description: "" }],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+
+    const firstResults = _parseAgentEvent(firstTool, "en", undefined, seen);
+    expect(firstResults.length).toBe(1);
+    expect(firstResults[0].message?.toolName).toBe("Bash");
+
+    const secondResults = _parseAgentEvent(secondTool, "en", undefined, seen);
+    expect(secondResults.length).toBe(1);
+    expect(secondResults[0].message?.toolName).toBe("AskUserQuestion");
+  });
+
+  it("does not dedupe streaming text blocks that have no ids", () => {
+    const seen = new Set<string>();
+    const first = {
+      type: "assistant",
+      message: {
+        content: [{ type: "text", text: "Hel" }],
+      },
+    };
+    const second = {
+      type: "assistant",
+      message: {
+        content: [{ type: "text", text: "Hello" }],
+      },
+    };
+
+    const firstResults = _parseAgentEvent(first, "en", undefined, seen);
+    expect(firstResults.length).toBe(1);
+    expect(firstResults[0].message?.content).toBe("Hel");
+
+    const secondResults = _parseAgentEvent(second, "en", undefined, seen);
+    expect(secondResults.length).toBe(1);
+    expect(secondResults[0].message?.content).toBe("Hello");
+  });
+
+  it("normalizes single-question AskUserQuestion input shape", () => {
+    const raw = {
+      type: "assistant",
+      message: {
+        content: [
+          {
+            type: "tool_use",
+            name: "AskUserQuestion",
+            input: {
+              question: "What style?",
+              options: ["Bold", "Clean"],
+            },
+          },
+        ],
+      },
+    };
+
+    const { message } = parseAgentEvent(raw, "en");
+    expect(message).toMatchObject({
+      toolName: "AskUserQuestion",
+      questionData: {
+        questions: [
+          {
+            question: "What style?",
+            options: [
+              { label: "Bold", description: "" },
+              { label: "Clean", description: "" },
+            ],
+          },
+        ],
+      },
+    });
+  });
+
   // --- Activity tracking ---
   it("does not set activity for text messages", () => {
     const raw = {
