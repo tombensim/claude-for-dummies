@@ -6,10 +6,10 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: [
-    "http://127.0.0.1:3456",
-    "http://localhost:3456",
-    "http://127.0.0.1",
-    "http://localhost",
+    // Next expects origin host patterns (not full URLs) here.
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
   ],
   experimental: {
     serverActions: {

@@ -1,16 +1,9 @@
-import { DM_Sans, Heebo, Lilita_One, Playpen_Sans_Hebrew, Secular_One } from "next/font/google";
+import { DM_Sans, Heebo, Lilita_One, Secular_One } from "next/font/google";
 
 export const lilitaOne = Lilita_One({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-display",
-  display: "swap",
-});
-
-export const playpenSansHebrew = Playpen_Sans_Hebrew({
-  subsets: ["hebrew"],
-  weight: ["700", "800"],
-  variable: "--font-display-he-hand",
   display: "swap",
 });
 

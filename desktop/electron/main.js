@@ -132,8 +132,38 @@ function createWindow(port, host = "127.0.0.1") {
     }
   });
 
-  mainWindow.webContents.on("did-fail-load", (_event, errorCode, errorDescription) => {
-    log.error("Window failed to load:", errorCode, errorDescription);
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      if (!isMainFrame) {
+        log.warn("Subframe failed to load:", {
+          errorCode,
+          errorDescription,
+          url: validatedURL,
+        });
+        return;
+      }
+      log.error("Window failed to load:", {
+        errorCode,
+        errorDescription,
+        url: validatedURL,
+      });
+    }
+  );
+
+  // Keep the desktop shell anchored to its own Next app origin.
+  // Preview/content links should not navigate the main app window.
+  mainWindow.webContents.on("will-navigate", (event, url, _isInPlace, isMainFrame) => {
+    // Ignore guest/subframe navigations (e.g. preview webview/iframe content).
+    if (isMainFrame === false) {
+      return;
+    }
+    const appOrigin = `http://${host}:${port}`;
+    if (!url.startsWith(appOrigin)) {
+      event.preventDefault();
+      log.warn("Blocked in-app navigation outside shell origin:", { url });
+      shell.openExternal(url);
+    }
   });
 
   mainWindow.webContents.on("did-finish-load", () => {

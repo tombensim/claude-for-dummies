@@ -17,7 +17,7 @@
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readFile, writeFile } from "fs/promises";
 import { join, resolve } from "path";
 import { homedir } from "os";
 import { agentLog, createLogger } from "@/lib/logger";
@@ -116,14 +116,58 @@ export async function* runAgentSDK(
     }
   }
 
+  let projectContext = "";
+  if (buildMode === "plan") {
+    const claudePath = join(projectDir || process.cwd(), "CLAUDE.md");
+    try {
+      projectContext = await readFile(claudePath, "utf8");
+    } catch (err) {
+      agentLog.warn(`[${requestId}] Failed to read CLAUDE.md for plan mode`, {
+        path: claudePath,
+        error: String(err),
+      });
+    }
+  }
+
   const planModePrefix = buildMode === "plan"
-    ? `[Enter Plan Mode. You are in PLAN MODE. DO NOT create, write, or modify any files. DO NOT run any commands. Your ONLY job is to ask the user questions and create a plan. Ask questions one at a time. When you have enough information, present a clear plan summary.]\n\n`
+    ? `[Enter Plan Mode. You are Shaul, the cc4d planner. Stay warm, direct, practical.
+You are in PLAN MODE. Do NOT create, write, or modify files. Do NOT run commands.
+Ask one question at a time and wait for the user's answer before the next question.
+Use numbered options whenever offering choices, exactly like:
+1. Option title - short explanation
+2. Option title - short explanation
+3. Option title - short explanation
+When you call AskUserQuestion, stop output for that turn immediately after the tool call.
+
+Required flow:
+Step 1: Ask what they want to build.
+Step 2: Ask for style/vibe, target audience, and top priority. Use AskUserQuestion when presenting predefined options.
+Step 3: Ask for design references. If the user provides a URL, use WebFetch to analyze it (and WebSearch only if needed) and incorporate concrete findings into your recommendations.
+Step 4: Do not present a final plan until the user has answered all required discovery questions (goal, vibe, audience, priority, references).
+Step 5: Provide a clear plan summary (scope, UX direction, technical approach, milestones, and open questions) and ask for approval to build.
+
+<project-context>
+${projectContext || "No CLAUDE.md context found."}
+</project-context>]\n\n`
     : "";
+
+  const buildModePrefix = buildMode === "build"
+    ? `[Build Mode Safety Rules:
+- Before making changes, read CLAUDE.md in the project root.
+- If .cc4d exists, read .cc4d/SKILL.md and follow the step files as source-of-truth.
+- For generated Next.js projects in this app, do not skip agentation setup steps from .cc4d/steps/04-scaffold-and-build.md.
+- This desktop shell runs on port 3456. NEVER stop, kill, or modify processes on port 3456.
+- NEVER run broad kill commands (killall/pkill/lsof|xargs kill) unless strictly scoped to this project's own process.
+- For project dev servers, prefer port 3000 (or 3001+ if needed).
+- If a port is busy, pick another project port instead of killing unrelated processes.]\n\n`
+    : "";
+
+  const modePrefix = buildMode === "plan" ? planModePrefix : buildModePrefix;
 
   const localizedPrompt =
     locale === "he"
-      ? `${planModePrefix}[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
-      : `${planModePrefix}${prompt}${imageSuffix}`;
+      ? `${modePrefix}[IMPORTANT: Respond in Hebrew. The user speaks Hebrew.]\n\n${prompt}${imageSuffix}`
+      : `${modePrefix}${prompt}${imageSuffix}`;
 
   agentLog.info(`[${requestId}] Starting SDK query`, {
     locale,
@@ -133,21 +177,66 @@ export async function* runAgentSDK(
     cwd: projectDir || process.cwd(),
   });
 
+  const buildTools = [
+    "Read",
+    "Write",
+    "Edit",
+    "Bash",
+    "Glob",
+    "Grep",
+    "WebSearch",
+    "WebFetch",
+    "AskUserQuestion",
+  ];
+  const planTools = ["WebSearch", "WebFetch", "AskUserQuestion"];
+  const sdkEnv: Record<string, string | undefined> = { ...process.env };
+  // Prevent Claude-run project commands from inheriting the desktop shell port.
+  // Without this, `npm run dev` in user projects can bind to 3456 and conflict
+  // with the desktop app itself.
+  sdkEnv.PORT = undefined;
+  sdkEnv.npm_config_port = undefined;
+  sdkEnv.NEXT_PORT = undefined;
+  const canUseTool = async (toolName: string, input: Record<string, unknown>) => {
+    if (toolName !== "Bash") {
+      return { behavior: "allow" as const, updatedInput: input };
+    }
+
+    const command = String(input.command || "");
+    const touchesShellPort = /\b3456\b|localhost:3456|127\.0\.0\.1:3456/.test(command);
+    const hasKillPattern =
+      /\b(pkill|killall|fuser)\b/.test(command) ||
+      /\blsof\b[\s\S]*\|\s*xargs\s+kill\b/.test(command) ||
+      /\bxargs\s+kill\b/.test(command);
+
+    if (touchesShellPort || hasKillPattern) {
+      agentLog.warn(`[${requestId}] Blocked unsafe Bash command`, { command });
+      return {
+        behavior: "deny" as const,
+        message:
+          "Do not kill processes or touch port 3456. The desktop shell depends on it. Use a different project port (3000/3001+) and continue.",
+        interrupt: false,
+      };
+    }
+
+    return { behavior: "allow" as const, updatedInput: input };
+  };
+
   const sdkOptions: Parameters<typeof query>[0]["options"] = {
-    allowedTools: [
-      "Read",
-      "Write",
-      "Edit",
-      "Bash",
-      "Glob",
-      "Grep",
-      "WebSearch",
-      "WebFetch",
-      "AskUserQuestion",
-    ],
-    permissionMode: "bypassPermissions",
-    allowDangerouslySkipPermissions: true,
+    ...(buildMode === "plan"
+      ? {
+          tools: planTools as string[],
+          allowedTools: planTools,
+          permissionMode: "plan" as const,
+        }
+      : {
+          // Build mode: full tool access
+          allowedTools: buildTools,
+          permissionMode: "bypassPermissions" as const,
+          allowDangerouslySkipPermissions: true,
+        }),
     cwd: projectDir || process.cwd(),
+    env: sdkEnv,
+    canUseTool,
     settingSources: ["project"],
     includePartialMessages: true,
   };

@@ -69,6 +69,28 @@ const markdownComponents: Components = {
       {children}
     </blockquote>
   ),
+  table: ({ children }) => (
+    <div className="mb-2 overflow-x-auto rounded-lg border-2 border-dummy-black/15">
+      <table className="w-full min-w-[420px] border-collapse text-xs sm:text-sm">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-dummy-black text-dummy-yellow">{children}</thead>
+  ),
+  tbody: ({ children }) => (
+    <tbody className="bg-dummy-white">{children}</tbody>
+  ),
+  tr: ({ children }) => (
+    <tr className="border-b border-dummy-black/15 last:border-b-0">{children}</tr>
+  ),
+  th: ({ children }) => (
+    <th className="px-3 py-2 text-right text-xs font-bold sm:text-sm">{children}</th>
+  ),
+  td: ({ children }) => (
+    <td className="px-3 py-2 align-top text-right text-xs sm:text-sm">{children}</td>
+  ),
 };
 
 export default function AssistantMessage({ content }: AssistantMessageProps) {

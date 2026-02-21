@@ -34,12 +34,21 @@ export default function ChatPanel({
   const messages = useAppStore((s) => s.messages);
   const showChips = isWorkspaceMode || currentStep >= 5;
 
-  // Show plan approval card when: wizard mode, plan mode, not streaming,
-  // and the last assistant message signals that the plan is ready
-  // (the skill ends with "Sound good?" / "נשמע טוב?" after presenting the plan)
-  const lastAssistantMsg = [...messages]
-    .reverse()
-    .find((m) => m.role === "assistant" && !m.toolName);
+  // Show plan approval card only after a real planning flow:
+  // 1) assistant signals readiness,
+  // 2) recent assistant output includes plan-summary language,
+  // 3) discovery happened (structured cards or multiple user replies),
+  // 4) if there was a structured question, user answered after the latest one.
+  const assistantMessages = messages.filter(
+    (m) => m.role === "assistant" && !m.toolName
+  );
+  const lastAssistantMsg = assistantMessages[assistantMessages.length - 1];
+  const lastQuestionIdx = messages.findLastIndex((m) => !!m.questionData);
+  const hasStructuredQuestionFlow = lastQuestionIdx >= 0;
+  const hasDiscoveryReplies = messages.filter((m) => m.role === "user").length >= 2;
+  const hasAnsweredLatestStructuredQuestion =
+    lastQuestionIdx < 0 ||
+    messages.slice(lastQuestionIdx + 1).some((m) => m.role === "user");
   const planReadySignals = [
     "sound good",
     "נשמע טוב",
@@ -52,16 +61,35 @@ export default function ChatPanel({
     "נתחיל",
     "יאללה",
   ];
+  const planSummarySignals = [
+    "plan",
+    "summary",
+    "milestones",
+    "scope",
+    "תוכנית",
+    "תכנית",
+    "סיכום",
+    "שלבים",
+  ];
   const hasPlanReadySignal =
     !!lastAssistantMsg &&
     planReadySignals.some((signal) =>
       lastAssistantMsg.content.toLowerCase().includes(signal)
     );
+  const recentAssistantMsgs = assistantMessages.slice(-4);
+  const hasPlanSummarySignal = recentAssistantMsgs.some((msg) =>
+    planSummarySignals.some((signal) =>
+      msg.content.toLowerCase().includes(signal)
+    )
+  );
   const showPlanApproval =
     !isWorkspaceMode &&
     buildMode === "plan" &&
     !isStreaming &&
-    hasPlanReadySignal;
+    hasPlanReadySignal &&
+    hasPlanSummarySignal &&
+    (hasStructuredQuestionFlow || hasDiscoveryReplies) &&
+    hasAnsweredLatestStructuredQuestion;
 
   // Show SoulNarrator briefly when step changes (wizard mode only)
   const [showNarrator, setShowNarrator] = useState(false);

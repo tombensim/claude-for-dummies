@@ -70,6 +70,12 @@ function uid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
+function hasPendingQuestion(messages: ChatMessage[]): boolean {
+  const lastQuestionIdx = messages.findLastIndex((m) => !!m.questionData);
+  if (lastQuestionIdx < 0) return false;
+  return !messages.slice(lastQuestionIdx + 1).some((m) => m.role === "user");
+}
+
 /**
  * Detect text that looks like numbered multi-choice questions.
  * Pattern: numbered lines (1. / 2.) with sub-options (- / a) / b) / •).
@@ -115,8 +121,62 @@ function parseTextQuestions(
     questions.push(currentQuestion);
   }
 
-  // Only return if we found at least 1 question with 2+ options
-  return questions.length > 0 ? { questions } : null;
+  // Standard structured format detected.
+  if (questions.length > 0) {
+    return { questions };
+  }
+
+  // Fallback: detect "single prompt + numbered options" lists and map them
+  // to one question card, so users still get clickable answers.
+  const numberedOptions = lines
+    .map((line) => line.trim().match(/^(\d+)[.)]\s+(.+)/))
+    .filter((match): match is RegExpMatchArray => !!match)
+    .map((match) => match[2].trim());
+
+  if (numberedOptions.length < 2) {
+    return null;
+  }
+
+  const firstOptionIdx = lines.findIndex((line) =>
+    /^(\d+)[.)]\s+(.+)/.test(line.trim())
+  );
+  const promptLines = lines
+    .slice(0, firstOptionIdx)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const prompt = promptLines[promptLines.length - 1] || "Choose an option";
+
+  // Avoid turning arbitrary numbered summaries into question cards.
+  const cueText = `${prompt}\n${text}`.toLowerCase();
+  const looksInteractive = [
+    "choose",
+    "pick",
+    "prefer",
+    "which",
+    "option",
+    "what do you want",
+    "בחר",
+    "תבחר",
+    "מעדיפ",
+    "איזה",
+    "אפשרות",
+    "סגנון",
+    "וייב",
+    "מה הכי",
+  ].some((cue) => cueText.includes(cue));
+
+  if (!looksInteractive) {
+    return null;
+  }
+
+  return {
+    questions: [
+      {
+        question: prompt.replace(/[:?]\s*$/, "").trim(),
+        options: numberedOptions.map((label) => ({ label, description: "" })),
+      },
+    ],
+  };
 }
 
 export interface AgentCallbacks {
@@ -505,6 +565,13 @@ export function connectToAgent(options: {
     sessionId: options.sessionId,
     mode: options.mode,
   });
+  const setActivity = (activity: string | null) => {
+    try {
+      useAppStore.getState().setCurrentActivity(activity);
+    } catch {
+      // Store may be unavailable in non-browser test environments.
+    }
+  };
 
   fetch("/api/agent", {
     method: "POST",
@@ -514,7 +581,7 @@ export function connectToAgent(options: {
   })
     .then(async (res) => {
       if (!res.ok || !res.body) {
-        useAppStore.getState().setCurrentActivity(null);
+        setActivity(null);
         options.onError(`HTTP ${res.status}`);
         return;
       }
@@ -524,6 +591,13 @@ export function connectToAgent(options: {
       let buffer = "";
       // Track seen content block IDs for dedup across cumulative assistant events
       const seenBlockIds = new Set<string>();
+      let awaitingQuestionAnswer = false;
+      let sawStreamingAssistantText = false;
+      try {
+        awaitingQuestionAnswer = hasPendingQuestion(useAppStore.getState().messages);
+      } catch {
+        awaitingQuestionAnswer = false;
+      }
 
       while (true) {
         const { done, value } = await reader.read();
@@ -537,7 +611,7 @@ export function connectToAgent(options: {
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
             if (data === "[DONE]") {
-              useAppStore.getState().setCurrentActivity(null);
+              setActivity(null);
               options.onDone();
               return;
             }
@@ -549,28 +623,98 @@ export function connectToAgent(options: {
                 options.onSessionId(parsed.session_id as string);
               }
 
-              const isStreaming = !!parsed._streaming;
+              if (parsed._streaming) {
+                if (awaitingQuestionAnswer) {
+                  continue;
+                }
+                const content = ((parsed.message as Record<string, unknown> | undefined)
+                  ?.content as Array<Record<string, unknown>> | undefined);
+                const text = content?.[0]?.text as string | undefined;
+                if (text) {
+                  sawStreamingAssistantText = true;
+                  const streamingMsg: ChatMessage = {
+                    id: `assistant-${uid()}`,
+                    role: "assistant",
+                    content: text,
+                    timestamp: Date.now(),
+                  };
+                  try {
+                    const store = useAppStore.getState();
+                    const lastMsg = store.messages[store.messages.length - 1];
+                    if (lastMsg?.role === "assistant" && !lastMsg.questionData) {
+                      store.updateLastMessage(text);
+                    } else {
+                      store.addMessage(streamingMsg);
+                    }
+                  } catch {
+                    options.onMessage(streamingMsg);
+                  }
+                }
+                continue;
+              }
+
               const results = parseAgentEvent(parsed, options.locale, options.callbacks, seenBlockIds);
 
               for (const { message: msg, activity } of results) {
                 if (activity !== undefined) {
-                  useAppStore.getState().setCurrentActivity(activity);
+                  setActivity(activity);
                 }
-                if (msg) {
-                  if (isStreaming && msg.role === "assistant") {
-                    // Streaming text delta — update the last message in place
-                    // instead of adding a new one, for smooth real-time display.
+                if (!msg) {
+                  continue;
+                }
+
+                if (msg.questionData) {
+                  if (awaitingQuestionAnswer) {
+                    continue;
+                  }
+                  awaitingQuestionAnswer = true;
+                  try {
                     const store = useAppStore.getState();
                     const lastMsg = store.messages[store.messages.length - 1];
-                    if (lastMsg?.role === "assistant" && !lastMsg.questionData) {
-                      store.updateLastMessage(msg.content);
-                    } else {
-                      options.onMessage(msg);
+                    const shouldReplaceLast =
+                      sawStreamingAssistantText &&
+                      lastMsg?.role === "assistant" &&
+                      !lastMsg.questionData &&
+                      !lastMsg.toolName &&
+                      lastMsg.content.trim() === msg.content.trim();
+                    if (shouldReplaceLast) {
+                      store.replaceLastMessage(msg);
+                      continue;
                     }
-                  } else {
-                    options.onMessage(msg);
+                  } catch {
+                    // Store may be unavailable in non-browser test environments.
+                  }
+                } else if (
+                  awaitingQuestionAnswer &&
+                  msg.role === "assistant" &&
+                  !msg.toolName
+                ) {
+                  continue;
+                }
+
+                if (
+                  sawStreamingAssistantText &&
+                  msg.role === "assistant" &&
+                  !msg.questionData &&
+                  !msg.toolName
+                ) {
+                  try {
+                    const store = useAppStore.getState();
+                    const lastMsg = store.messages[store.messages.length - 1];
+                    const isDuplicateFinalText =
+                      lastMsg?.role === "assistant" &&
+                      !lastMsg.questionData &&
+                      !lastMsg.toolName &&
+                      lastMsg.content.trim() === msg.content.trim();
+                    if (isDuplicateFinalText) {
+                      continue;
+                    }
+                  } catch {
+                    // Store may be unavailable in non-browser test environments.
                   }
                 }
+
+                options.onMessage(msg);
               }
             } catch {
               // Skip unparseable lines
@@ -579,12 +723,12 @@ export function connectToAgent(options: {
         }
       }
 
-      useAppStore.getState().setCurrentActivity(null);
+      setActivity(null);
       options.onDone();
     })
     .catch((err) => {
       if (err.name !== "AbortError") {
-        useAppStore.getState().setCurrentActivity(null);
+        setActivity(null);
         options.onError(err.message);
       }
     });

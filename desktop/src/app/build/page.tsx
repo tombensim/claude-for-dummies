@@ -36,6 +36,40 @@ Wait for the user's message — they will tell you what they need.
 Locale: ${locale}`;
 }
 
+function extractLocalPreviewPort(url: string): number | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") return null;
+    const port = Number(parsed.port);
+    return Number.isFinite(port) && port > 0 ? port : null;
+  } catch {
+    return null;
+  }
+}
+
+async function isPreviewReachable(url: string): Promise<boolean> {
+  const localPort = extractLocalPreviewPort(url);
+  if (localPort == null) return true;
+
+  // Quick browser-side check (no CORS required for connectivity test).
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 2500);
+  try {
+    await fetch(url, {
+      method: "GET",
+      mode: "no-cors",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export default function BuildPage() {
   const router = useRouter();
   const store = useAppStore();
@@ -205,18 +239,8 @@ export default function BuildPage() {
         },
         callbacks: {
           onDevServerDetected: () => {
-            const isElectron = typeof window !== "undefined" && !!window.electronAPI?.pollPort;
-            if (isElectron) {
-              // Poll port 3000 and set preview URL when ready
-              window.electronAPI!.pollPort!(3000).then((ready: boolean) => {
-                if (ready) {
-                  useAppStore.getState().setPreviewUrl("http://localhost:3000");
-                }
-              });
-            } else {
-              // Browser dev mode: set preview URL directly (can't poll ports)
-              useAppStore.getState().setPreviewUrl("http://localhost:3000");
-            }
+            // Wait for onPreviewReady(url), which is derived from actual tool output.
+            // This avoids hard-coding port 3000 when the project starts on another port.
           },
           onFileChanged: () => {
             setRefreshTrigger((c) => c + 1);
@@ -253,7 +277,17 @@ export default function BuildPage() {
             }
           },
           onPreviewReady: (url) => {
-            useAppStore.getState().setPreviewUrl(url);
+            void (async () => {
+              const reachable = await isPreviewReachable(url);
+              const st = useAppStore.getState();
+              if (reachable) {
+                st.setPreviewUrl(url);
+                return;
+              }
+              if (st.previewUrl === url) {
+                st.setPreviewUrl(null);
+              }
+            })();
           },
           onLiveUrl: (url) => {
             const st = useAppStore.getState();
@@ -296,7 +330,7 @@ export default function BuildPage() {
     if (store.isStreaming) {
       store.setProjectDrawerOpen(true);
     } else {
-      store.reset();
+      store.resetForNewProject();
       router.push("/welcome");
     }
   }

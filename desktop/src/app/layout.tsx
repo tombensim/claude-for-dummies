@@ -5,7 +5,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import {
   lilitaOne,
-  playpenSansHebrew,
   secularOne,
   dmSans,
   heebo,
@@ -25,7 +24,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const isRTL = locale === "he";
-  const fontClasses = `${lilitaOne.variable} ${playpenSansHebrew.variable} ${secularOne.variable} ${dmSans.variable} ${heebo.variable}`;
+  const fontClasses = `${lilitaOne.variable} ${secularOne.variable} ${dmSans.variable} ${heebo.variable}`;
   const bodyFont = isRTL
     ? "font-[family-name:var(--font-body-he)]"
     : "font-[family-name:var(--font-body-en)]";

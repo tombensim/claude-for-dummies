@@ -63,6 +63,36 @@ describe("parseAgentEvent", () => {
     });
   });
 
+  it("maps interactive numbered options into questionData", () => {
+    const raw = {
+      type: "assistant",
+      message: {
+        content: [
+          {
+            type: "text",
+            text: "איזה סגנון מתאים לך?\n1. מינימליסטי ונקי\n2. חם ונעים\n3. עתידני ונועז",
+          },
+        ],
+      },
+    };
+    const { message } = parseAgentEvent(raw, "he");
+    expect(message).toMatchObject({
+      role: "assistant",
+      questionData: {
+        questions: [
+          {
+            question: "איזה סגנון מתאים לך",
+            options: [
+              { label: "מינימליסטי ונקי" },
+              { label: "חם ונעים" },
+              { label: "עתידני ונועז" },
+            ],
+          },
+        ],
+      },
+    });
+  });
+
   it("returns null message for assistant with no message", () => {
     expect(parseAgentEvent({ type: "assistant" }, "en").message).toBeNull();
   });

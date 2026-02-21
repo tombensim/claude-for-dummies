@@ -69,7 +69,7 @@ interface AppState {
   isWorkspaceMode: boolean;
   chipsVisible: boolean;
 
-  // Build mode: 'plan' = Claude gathers requirements (no tools), 'build' = Claude executes
+  // Build mode: 'plan' = Claude gathers requirements (web research + question tools), 'build' = Claude executes
   buildMode: "plan" | "build";
 
   // Chat
@@ -118,6 +118,7 @@ interface AppState {
   hideChips: () => void;
   addMessage: (msg: ChatMessage) => void;
   updateLastMessage: (content: string) => void;
+  replaceLastMessage: (msg: ChatMessage) => void;
   loadMessages: (msgs: ChatMessage[]) => void;
   setStreaming: (streaming: boolean) => void;
   setCurrentActivity: (activity: string | null) => void;
@@ -143,6 +144,7 @@ interface AppState {
   setPendingChatMessage: (msg: string | null) => void;
   loadProject: (meta: ProjectMeta) => void;
   reset: () => void;
+  resetForNewProject: () => void;
 }
 
 const initialState = {
@@ -278,6 +280,14 @@ export const useAppStore = create<AppState>()(
           }
           return { messages: msgs };
         }),
+      replaceLastMessage: (msg) =>
+        set((state) => {
+          const msgs = [...state.messages];
+          if (msgs.length > 0) {
+            msgs[msgs.length - 1] = msg;
+          }
+          return { messages: msgs };
+        }),
       loadMessages: (msgs) => set({ messages: msgs, messagesLoaded: true }),
       setStreaming: (isStreaming) => set({ isStreaming }),
       setCurrentActivity: (currentActivity) => set({ currentActivity }),
@@ -341,6 +351,14 @@ export const useAppStore = create<AppState>()(
           };
         }),
       reset: () => set({ ...initialState }),
+      resetForNewProject: () =>
+        set((state) => ({
+          ...initialState,
+          locale: state.locale,
+          userName: state.userName,
+          runtimeReady: state.runtimeReady,
+          claudeAuthenticated: state.claudeAuthenticated,
+        })),
     }),
     {
       name: "cc4d-desktop-store",

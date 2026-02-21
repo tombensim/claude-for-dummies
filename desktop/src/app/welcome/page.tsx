@@ -78,6 +78,12 @@ export default function WelcomePage() {
     if (isCreating) return;
     setIsCreating(true);
 
+    // Reset store first to clear stale sessionId from a previous project.
+    // Without this, the old sessionId is sent to the SDK which tries to resume
+    // a session from a different project directory and crashes with exit code 1.
+    const store = useAppStore.getState();
+    store.resetForNewProject();
+
     try {
       const meta = await window.electronAPI?.createProject?.("", locale);
       if (meta) {
