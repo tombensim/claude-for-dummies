@@ -33,18 +33,18 @@ describe("LivePreview", () => {
     expect(useAppStore.getState().previewMode).toBe("desktop");
 
     // Click mobile button
-    const mobileBtn = screen.getByTitle("Mobile");
+    const mobileBtn = screen.getByRole("button", { name: "Mobile view" });
     await user.click(mobileBtn);
     expect(useAppStore.getState().previewMode).toBe("mobile");
 
     // Click desktop button
-    const desktopBtn = screen.getByTitle("Desktop");
+    const desktopBtn = screen.getByRole("button", { name: "Desktop view" });
     await user.click(desktopBtn);
     expect(useAppStore.getState().previewMode).toBe("desktop");
   });
 
   it("has a refresh button", () => {
     render(<LivePreview />);
-    expect(screen.getByTitle("Refresh")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Refresh preview" })).toBeInTheDocument();
   });
 });

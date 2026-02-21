@@ -13,7 +13,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-    exclude: ["__tests__/e2e/**", "node_modules/**"],
+    exclude: [
+      "__tests__/e2e/**",
+      "node_modules/**",
+      "**/node_modules/**",
+      "demo-video/**",
+    ],
     setupFiles: ["__tests__/setup/vitest.setup.tsx"],
     server: {
       deps: {

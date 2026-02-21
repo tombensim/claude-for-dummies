@@ -28,12 +28,16 @@ export default function ChatHistory({ onAnswer }: ChatHistoryProps) {
   }, [messages, isStreaming]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const frame = window.requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [messages, isStreaming]);
 
   return (
     <div
-      className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3"
+      data-chat-scroll-container="true"
+      className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden p-4 pb-6"
       role="log"
       aria-label={t("chatRegion")}
       aria-live="polite"

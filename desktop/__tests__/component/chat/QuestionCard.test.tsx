@@ -57,7 +57,7 @@ describe("QuestionCard", () => {
     expect(screen.getByText("Clean")).toBeInTheDocument();
   });
 
-  it("calls onAnswer with option label on click", async () => {
+  it("submits combined answers after continue", async () => {
     const user = userEvent.setup();
     const onAnswer = vi.fn();
 
@@ -75,13 +75,23 @@ describe("QuestionCard", () => {
               { label: "Option B", description: "Second" },
             ],
           },
+          {
+            question: "Pick color",
+            options: [
+              { label: "Red", description: "Warm" },
+              { label: "Blue", description: "Cool" },
+            ],
+          },
         ],
       },
     };
 
     render(<QuestionCard message={message} onAnswer={onAnswer} />);
     await user.click(screen.getByText("Option A"));
-    expect(onAnswer).toHaveBeenCalledWith("Option A");
+    expect(onAnswer).not.toHaveBeenCalled();
+    await user.click(screen.getByText("Red"));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(onAnswer).toHaveBeenCalledWith("Pick one: Option A\nPick color: Red");
   });
 
   it("renders multiple questions", () => {

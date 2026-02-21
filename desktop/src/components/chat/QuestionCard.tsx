@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import type { ChatMessage } from "@/lib/store";
@@ -15,6 +15,7 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
   const questions = message.questionData?.questions;
   const [selections, setSelections] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = useCallback(
     (qIdx: number, label: string) => {
@@ -40,11 +41,31 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
 
   const allAnswered = Object.keys(selections).length === questions.length;
 
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const container = el.closest("[data-chat-scroll-container='true']") as HTMLElement | null;
+      if (container) {
+        const bottom = el.offsetTop + el.offsetHeight + 16;
+        const top = Math.max(0, bottom - container.clientHeight);
+        container.scrollTo({ top, behavior: "smooth" });
+        return;
+      }
+
+      el.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [selections, submitted, allAnswered]);
+
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
+      className="space-y-4 pb-1"
     >
       {questions.map((q, qIdx) => (
         <div key={qIdx} className="card-brand p-4" dir="auto">
