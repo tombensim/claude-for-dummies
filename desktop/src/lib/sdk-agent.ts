@@ -17,7 +17,8 @@
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { constants as fsConstants } from "fs";
+import { access, mkdir, readFile, writeFile } from "fs/promises";
 import { join, resolve } from "path";
 import { homedir } from "os";
 import { agentLog, createLogger } from "@/lib/logger";
@@ -40,6 +41,55 @@ const MIME_TO_EXT: Record<string, string> = {
   "image/gif": "gif",
   "image/webp": "webp",
 };
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path, fsConstants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function extractCommandCwd(command: string, fallbackCwd: string): string {
+  const cdMatch = command.match(/\bcd\s+(['"]?)([^'"&;|]+)\1\s*&&/);
+  if (!cdMatch?.[2]) {
+    return fallbackCwd;
+  }
+  return resolve(fallbackCwd, cdMatch[2].trim());
+}
+
+function hasDevServerStartCommand(command: string): boolean {
+  return /\bnpm\s+run\s+dev\b|\bpnpm\s+dev\b|\byarn\s+dev\b|\bnext\s+dev\b/.test(command);
+}
+
+async function hasAgentationSetup(projectCwd: string): Promise<boolean> {
+  try {
+    const packageJsonPath = join(projectCwd, "package.json");
+    const wrapperPath = join(projectCwd, "app", "agentation-wrapper.tsx");
+    const layoutPath = join(projectCwd, "app", "layout.tsx");
+
+    const [packageRaw, wrapperExists, layoutRaw] = await Promise.all([
+      readFile(packageJsonPath, "utf8"),
+      pathExists(wrapperPath),
+      readFile(layoutPath, "utf8"),
+    ]);
+
+    const packageJson = JSON.parse(packageRaw) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+
+    const hasDependency =
+      Boolean(packageJson.dependencies?.agentation) ||
+      Boolean(packageJson.devDependencies?.agentation);
+    const hasLayoutUsage = /AgentationWrapper/.test(layoutRaw);
+
+    return hasDependency && wrapperExists && hasLayoutUsage;
+  } catch {
+    return false;
+  }
+}
 
 async function saveImages(
   projectDir: string,
@@ -129,6 +179,16 @@ export async function* runAgentSDK(
     }
   }
 
+  let scaffoldStepContext = "";
+  if (buildMode === "build") {
+    const scaffoldPath = join(projectDir || process.cwd(), ".cc4d", "steps", "04-scaffold-and-build.md");
+    try {
+      scaffoldStepContext = await readFile(scaffoldPath, "utf8");
+    } catch {
+      // Optional context file; skip if missing.
+    }
+  }
+
   const planModePrefix = buildMode === "plan"
     ? `[Enter Plan Mode. You are Shaul, the cc4d planner. Stay warm, direct, practical.
 You are in PLAN MODE. Do NOT create, write, or modify files. Do NOT run commands.
@@ -156,10 +216,14 @@ ${projectContext || "No CLAUDE.md context found."}
 - Before making changes, read CLAUDE.md in the project root.
 - If .cc4d exists, read .cc4d/SKILL.md and follow the step files as source-of-truth.
 - For generated Next.js projects in this app, do not skip agentation setup steps from .cc4d/steps/04-scaffold-and-build.md.
+- Do not present a "ready" preview until agentation is installed and wired via app/agentation-wrapper.tsx + app/layout.tsx.
 - This desktop shell runs on port 3456. NEVER stop, kill, or modify processes on port 3456.
 - NEVER run broad kill commands (killall/pkill/lsof|xargs kill) unless strictly scoped to this project's own process.
 - For project dev servers, prefer port 3000 (or 3001+ if needed).
-- If a port is busy, pick another project port instead of killing unrelated processes.]\n\n`
+- If a port is busy, pick another project port instead of killing unrelated processes.
+<step-04-context>
+${scaffoldStepContext || "No .cc4d/steps/04-scaffold-and-build.md context found."}
+</step-04-context>]\n\n`
     : "";
 
   const modePrefix = buildMode === "plan" ? planModePrefix : buildModePrefix;
@@ -189,6 +253,10 @@ ${projectContext || "No CLAUDE.md context found."}
     "AskUserQuestion",
   ];
   const planTools = ["WebSearch", "WebFetch", "AskUserQuestion"];
+  const buildRoot = projectDir || process.cwd();
+  const enforceAgentationSetup =
+    buildMode === "build" && (await pathExists(join(buildRoot, ".cc4d")));
+
   const sdkEnv: Record<string, string | undefined> = { ...process.env };
   // Prevent Claude-run project commands from inheriting the desktop shell port.
   // Without this, `npm run dev` in user projects can bind to 3456 and conflict
@@ -216,6 +284,23 @@ ${projectContext || "No CLAUDE.md context found."}
           "Do not kill processes or touch port 3456. The desktop shell depends on it. Use a different project port (3000/3001+) and continue.",
         interrupt: false,
       };
+    }
+
+    if (enforceAgentationSetup && hasDevServerStartCommand(command)) {
+      const commandCwd = extractCommandCwd(command, buildRoot);
+      const readyForPreview = await hasAgentationSetup(commandCwd);
+      if (!readyForPreview) {
+        agentLog.warn(`[${requestId}] Blocked dev server start before Agentation setup`, {
+          command,
+          cwd: commandCwd,
+        });
+        return {
+          behavior: "deny" as const,
+          message:
+            "Before starting the dev server, complete Agentation setup: install `agentation`, create `app/agentation-wrapper.tsx`, and render `<AgentationWrapper />` in `app/layout.tsx`.",
+          interrupt: false,
+        };
+      }
     }
 
     return { behavior: "allow" as const, updatedInput: input };
@@ -246,6 +331,7 @@ ${projectContext || "No CLAUDE.md context found."}
   }
 
   let messageCount = 0;
+  let sawSuccessfulResult = false;
 
   // Accumulator state for stream events
   let currentBlockType: string | null = null;
@@ -369,6 +455,17 @@ ${projectContext || "No CLAUDE.md context found."}
       }
 
       // --- Forward system, user, result messages as-is ---
+      if (msg.type === "result") {
+        const subtype = (msg as Record<string, unknown>).subtype;
+        if (subtype === "success") {
+          sawSuccessfulResult = true;
+        }
+        if (subtype === "error_during_execution" && sawSuccessfulResult) {
+          agentLog.warn(`[${requestId}] Ignoring post-success SDK error_during_execution result`);
+          continue;
+        }
+      }
+
       const logEntry: Record<string, unknown> = {
         type: msg.type,
         seq: messageCount,
@@ -386,13 +483,26 @@ ${projectContext || "No CLAUDE.md context found."}
       yield raw;
     }
   } catch (err) {
-    if ((err as Error).name === "AbortError") {
+    const errorStr = String(err);
+    const isAbort =
+      (err as Error).name === "AbortError" ||
+      errorStr.includes("aborted by user");
+    const isPostSuccessSdkExit =
+      sawSuccessfulResult &&
+      (errorStr.includes("process exited with code 1") ||
+        errorStr.includes("only prompt commands are supported in streaming mode"));
+
+    if (isAbort) {
       agentLog.info(`[${requestId}] SDK query aborted`);
+    } else if (isPostSuccessSdkExit) {
+      agentLog.warn(`[${requestId}] Suppressing post-success SDK process error`, {
+        error: errorStr,
+      });
     } else {
       agentLog.error(`[${requestId}] SDK query error`, {
-        error: String(err),
+        error: errorStr,
       });
-      yield { type: "error", content: String(err) };
+      yield { type: "error", content: errorStr };
     }
   }
 

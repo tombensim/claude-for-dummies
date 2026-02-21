@@ -34,7 +34,26 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       let closed = false;
       const safeEnqueue = (data: Uint8Array) => {
-        if (!closed) controller.enqueue(data);
+        if (closed) return;
+        try {
+          controller.enqueue(data);
+        } catch (err) {
+          closed = true;
+          agentLog.warn(`[${requestId}] Stream enqueue skipped after close`, {
+            error: String(err),
+          });
+        }
+      };
+      const safeClose = () => {
+        if (closed) return;
+        closed = true;
+        try {
+          controller.close();
+        } catch (err) {
+          agentLog.warn(`[${requestId}] Stream close skipped`, {
+            error: String(err),
+          });
+        }
       };
       try {
         for await (const event of runAgentSDK(
@@ -55,11 +74,8 @@ export async function POST(req: NextRequest) {
           )
         );
       } finally {
-        if (!closed) {
-          closed = true;
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-        }
+        safeEnqueue(encoder.encode("data: [DONE]\n\n"));
+        safeClose();
       }
     },
   });

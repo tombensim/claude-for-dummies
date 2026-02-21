@@ -12,7 +12,7 @@ export default function ProjectQuickActions() {
   const projectDir = useAppStore((s) => s.projectDir);
   const liveUrl = useAppStore((s) => s.liveUrl);
   const isStreaming = useAppStore((s) => s.isStreaming);
-  const reset = useAppStore((s) => s.reset);
+  const resetForNewProject = useAppStore((s) => s.resetForNewProject);
   const setProjectDrawerOpen = useAppStore((s) => s.setProjectDrawerOpen);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -38,7 +38,7 @@ export default function ProjectQuickActions() {
 
   function startNewProject() {
     setProjectDrawerOpen(false);
-    reset();
+    resetForNewProject();
     router.push("/welcome");
   }
 

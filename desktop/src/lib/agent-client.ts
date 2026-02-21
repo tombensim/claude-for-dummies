@@ -472,6 +472,12 @@ function parseResultEvent(
 ): ParseResult {
   const subtype = raw.subtype as string;
 
+  // SDK sometimes emits a synthetic error_during_execution result after a
+  // successful turn; ignore it to avoid false "Whoops" status messages.
+  if (subtype === "error_during_execution") {
+    return { message: null, activity: null };
+  }
+
   if (subtype === "error" || raw.is_error) {
     return {
       message: {
@@ -675,8 +681,7 @@ export function connectToAgent(options: {
                       sawStreamingAssistantText &&
                       lastMsg?.role === "assistant" &&
                       !lastMsg.questionData &&
-                      !lastMsg.toolName &&
-                      lastMsg.content.trim() === msg.content.trim();
+                      !lastMsg.toolName;
                     if (shouldReplaceLast) {
                       store.replaceLastMessage(msg);
                       continue;
@@ -727,6 +732,9 @@ export function connectToAgent(options: {
       options.onDone();
     })
     .catch((err) => {
+      if (controller.signal.aborted) {
+        return;
+      }
       if (err.name !== "AbortError") {
         setActivity(null);
         options.onError(err.message);

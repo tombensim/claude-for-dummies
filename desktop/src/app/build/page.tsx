@@ -70,6 +70,26 @@ async function isPreviewReachable(url: string): Promise<boolean> {
   }
 }
 
+async function detectWorkspacePreviewUrl(): Promise<string | null> {
+  const pollPort = window.electronAPI?.pollPort;
+  if (!pollPort) return null;
+
+  // Prefer common Next.js local ports.
+  const candidatePorts = [3000, 3001, 3002, 3003, 3004, 3005, 3010];
+  for (const port of candidatePorts) {
+    try {
+      const ready = await pollPort(port);
+      if (ready) {
+        return `http://localhost:${port}`;
+      }
+    } catch {
+      // Ignore probe failures and continue.
+    }
+  }
+
+  return null;
+}
+
 export default function BuildPage() {
   const router = useRouter();
   const store = useAppStore();
@@ -139,8 +159,10 @@ export default function BuildPage() {
       setShowRecoveryBanner(true);
       // In workspace mode, also try to start the dev server preview
       if (isWorkspace) {
-        window.electronAPI?.pollPort?.(3000).then((ready: boolean) => {
-          if (ready) store.setPreviewUrl("http://localhost:3000");
+        void detectWorkspacePreviewUrl().then((url) => {
+          if (url) {
+            store.setPreviewUrl(url);
+          }
         });
       }
       return;
@@ -150,8 +172,10 @@ export default function BuildPage() {
     if (store.sessionId) {
       // In workspace mode, try to detect running dev server
       if (isWorkspace) {
-        window.electronAPI?.pollPort?.(3000).then((ready: boolean) => {
-          if (ready) store.setPreviewUrl("http://localhost:3000");
+        void detectWorkspacePreviewUrl().then((url) => {
+          if (url) {
+            store.setPreviewUrl(url);
+          }
         });
       }
       return;

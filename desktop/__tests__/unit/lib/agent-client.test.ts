@@ -336,6 +336,17 @@ describe("parseAgentEvent", () => {
     });
   });
 
+  it("ignores result/error_during_execution pseudo-errors", () => {
+    const raw = {
+      type: "result",
+      subtype: "error_during_execution",
+      is_error: true,
+    };
+    const { message, activity } = parseAgentEvent(raw, "en");
+    expect(message).toBeNull();
+    expect(activity).toBeNull();
+  });
+
   // --- Error event ---
   it("handles error event → retry status", () => {
     const raw = { type: "error", message: "something broke" };
