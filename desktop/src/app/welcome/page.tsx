@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LazyMotion, domAnimation, m } from "framer-motion";
-import { Globe, HardDrive, Loader2, Rocket, Sparkles, Trash2 } from "lucide-react";
+import { Globe, HardDrive, Loader2, Pencil, Rocket, Sparkles, Trash2 } from "lucide-react";
 import MascotImage from "@/components/brand/MascotImage";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type ProjectMeta } from "@/lib/store";
@@ -112,10 +112,41 @@ export default function WelcomePage() {
     setConfirmDeleteId(null);
   }
 
+  async function handleRenameProject(project: ProjectMeta) {
+    const currentName = (project.displayName || project.name || "").trim();
+    const nextName = window.prompt(
+      locale === "he" ? "בחר שם חדש לפרויקט" : "Choose a new project name",
+      currentName
+    );
+    const trimmed = nextName?.trim();
+    if (!trimmed || trimmed === currentName) return;
+
+    try {
+      const updated = await window.electronAPI?.updateProject?.(project.id, {
+        displayName: trimmed,
+      });
+      if (updated) {
+        setRecentProjects((prev) =>
+          prev.map((p) =>
+            p.id === project.id ? { ...p, displayName: trimmed } : p
+          )
+        );
+      }
+    } catch (err) {
+      console.error("[welcome] Project rename failed:", err);
+    }
+  }
+
   async function handleProjectSwitch(project: ProjectMeta) {
     try {
       const meta = await window.electronAPI?.switchProject?.(project.id);
-      if (!meta) return;
+      if (!meta) {
+        const refreshed = await window.electronAPI?.listProjects?.();
+        if (Array.isArray(refreshed)) {
+          setRecentProjects(refreshed);
+        }
+        return;
+      }
       loadProject(meta);
       if (meta.sessionId) {
         setStep(4, 1);
@@ -123,6 +154,10 @@ export default function WelcomePage() {
       router.push("/build");
     } catch (err) {
       console.error("[welcome] Project switch failed:", err);
+      const refreshed = await window.electronAPI?.listProjects?.().catch(() => []);
+      if (Array.isArray(refreshed)) {
+        setRecentProjects(refreshed);
+      }
     }
   }
 
@@ -209,6 +244,17 @@ export default function WelcomePage() {
                           </div>
                           <ProjectStatusBadge project={project} t={t} />
                         </m.button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleRenameProject(project);
+                          }}
+                          className="absolute end-20 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-dummy-black/0 transition-colors group-hover:text-dummy-black/30 hover:!bg-dummy-black/5 hover:!text-dummy-black"
+                          aria-label={locale === "he" ? "שנה שם פרויקט" : "Rename project"}
+                          title={locale === "he" ? "שנה שם פרויקט" : "Rename project"}
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

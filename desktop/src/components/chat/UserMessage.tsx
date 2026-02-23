@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { ImageAttachment } from "@/lib/store";
+import { type ImageAttachment, useAppStore } from "@/lib/store";
 
 interface UserMessageProps {
   content: string;
@@ -9,14 +9,19 @@ interface UserMessageProps {
 }
 
 export default function UserMessage({ content, images }: UserMessageProps) {
+  const locale = useAppStore((s) => s.locale);
+  const isRtl = locale === "he";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex gap-3 justify-end"
-      dir="ltr"
+      className="flex w-full justify-end gap-3"
     >
-      <div className="max-w-[80%] rounded-2xl bg-dummy-black px-4 py-3 text-dummy-yellow overflow-hidden break-words" dir="auto">
+      <div
+        className="max-w-[80%] overflow-hidden break-words rounded-2xl bg-dummy-black px-4 py-3 text-dummy-yellow"
+        dir={isRtl ? "rtl" : "ltr"}
+      >
         {images && images.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {images.map((img) => (

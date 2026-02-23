@@ -43,13 +43,23 @@ function setupSystemIPC({ isKnownProjectPath }) {
     return status;
   });
 
-  ipcMain.handle("project:open", (_event, projectPath) => {
+  ipcMain.handle("project:open", async (_event, projectPath) => {
     if (!isKnownProjectPath(projectPath)) {
       log.warn("project:open blocked — path not in known projects:", projectPath);
-      return;
+      return false;
     }
-    log.info("Opening project path:", projectPath);
-    shell.openPath(projectPath);
+    try {
+      log.info("Opening project path:", projectPath);
+      const err = await shell.openPath(projectPath);
+      if (err) {
+        log.warn("project:open failed:", err);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      log.warn("project:open failed:", err.message);
+      return false;
+    }
   });
 
   ipcMain.handle("shell:open-external", (_event, url) => {

@@ -7,6 +7,18 @@ const projectStore = require("./project-store.mjs");
 const { slugifyIdea, deduplicatePath } = require("./project-utils");
 const { copySkillFiles, writeProjectClaudeMd, initProgressState } = require("./skill-files");
 
+function isValidProjectMeta(project) {
+  return (
+    !!project &&
+    typeof project.id === "string" &&
+    project.id.trim().length > 0 &&
+    typeof project.name === "string" &&
+    project.name.trim().length > 0 &&
+    typeof project.path === "string" &&
+    project.path.trim().length > 0
+  );
+}
+
 /**
  * Register project management IPC handlers: CRUD, switching,
  * preference finalization.
@@ -67,21 +79,61 @@ function setupProjectIPC({ getProjectsDir }) {
 
   ipcMain.handle("project:list", () => {
     const projects = projectStore.getProjects();
-    return projects.sort(
+    const valid = [];
+    for (const project of projects) {
+      if (!isValidProjectMeta(project)) {
+        if (project?.id) {
+          projectStore.removeProject(project.id);
+        }
+        log.warn("[project] Removed malformed project metadata entry");
+        continue;
+      }
+
+      if (!fs.existsSync(project.path)) {
+        projectStore.removeProject(project.id);
+        log.warn("[project] Removed stale project entry (missing directory):", project.path);
+        continue;
+      }
+
+      valid.push(project);
+    }
+
+    return valid.sort(
       (a, b) => new Date(b.lastOpenedAt).getTime() - new Date(a.lastOpenedAt).getTime()
     );
   });
 
   ipcMain.handle("project:switch", (_event, id) => {
+    if (typeof id !== "string" || !id.trim()) {
+      log.warn("[project] Switch failed — invalid project id:", id);
+      return null;
+    }
+
     const project = projectStore.getProject(id);
     if (!project) {
       log.warn("[project] Switch failed — not found:", id);
       return null;
     }
+
+    if (!isValidProjectMeta(project)) {
+      projectStore.removeProject(id);
+      log.warn("[project] Switch failed — malformed project metadata:", id);
+      return null;
+    }
+
     if (!fs.existsSync(project.path)) {
+      projectStore.removeProject(id);
       log.warn("[project] Switch failed — dir missing:", project.path);
       return null;
     }
+
+    try {
+      // Recovery guard for older projects missing metadata directory.
+      fs.mkdirSync(path.join(project.path, ".cc4d"), { recursive: true });
+    } catch (err) {
+      log.warn("[project] Failed to ensure .cc4d directory for", project.path, err.message);
+    }
+
     projectStore.updateProject(id, { lastOpenedAt: new Date().toISOString() });
     projectStore.setActiveProjectId(id);
     log.info("[project] Switched to", project.name);
@@ -89,6 +141,14 @@ function setupProjectIPC({ getProjectsDir }) {
   });
 
   ipcMain.handle("project:update", (_event, { id, updates }) => {
+    if (typeof id !== "string" || !id.trim()) {
+      log.warn("[project] Update failed — invalid id:", id);
+      return null;
+    }
+    if (!updates || typeof updates !== "object") {
+      log.warn("[project] Update failed — invalid updates payload for", id);
+      return null;
+    }
     const updated = projectStore.updateProject(id, updates);
     if (updated) {
       log.info("[project] Updated", id, Object.keys(updates).join(", "));
@@ -97,7 +157,17 @@ function setupProjectIPC({ getProjectsDir }) {
   });
 
   ipcMain.handle("project:get-active", () => {
-    return projectStore.getActiveProject();
+    const active = projectStore.getActiveProject();
+    if (!active) return null;
+    if (!isValidProjectMeta(active) || !fs.existsSync(active.path)) {
+      projectStore.setActiveProjectId(null);
+      if (active?.id) {
+        projectStore.removeProject(active.id);
+      }
+      log.warn("[project] Cleared stale active project metadata");
+      return null;
+    }
+    return active;
   });
 
   ipcMain.handle("project:remove", (_event, id) => {

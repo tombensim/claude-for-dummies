@@ -25,6 +25,18 @@ function saveJsonFileAtomic(filePath, data) {
 const ENV_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
+function resolveKnownProjectPath(projectPath, isKnownProjectPath, channel) {
+  if (typeof projectPath !== "string" || !projectPath.trim()) {
+    log.warn(`${channel} blocked — missing/invalid project path`, projectPath);
+    return null;
+  }
+  if (!isKnownProjectPath(projectPath)) {
+    log.warn(`${channel} blocked — path not in known projects:`, projectPath);
+    return null;
+  }
+  return projectPath;
+}
+
 /**
  * Register file-oriented IPC handlers: chat history, milestones,
  * inspirations, env vars, notes, and file attachments.
@@ -33,13 +45,17 @@ function setupFilesIPC({ isKnownProjectPath }) {
   // --- Chat history ---
 
   ipcMain.handle("chat:load", async (_event, projectPath) => {
-    const filePath = path.join(projectPath, ".cc4d", "chat-history.json");
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "chat:load");
+    if (!safePath) return [];
+    const filePath = path.join(safePath, ".cc4d", "chat-history.json");
     return loadJsonFile(filePath, []);
   });
 
   ipcMain.handle("chat:save", async (_event, { projectPath, messages }) => {
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "chat:save");
+    if (!safePath) return false;
     try {
-      const filePath = path.join(projectPath, ".cc4d", "chat-history.json");
+      const filePath = path.join(safePath, ".cc4d", "chat-history.json");
       saveJsonFileAtomic(filePath, messages);
       return true;
     } catch (err) {
@@ -51,13 +67,17 @@ function setupFilesIPC({ isKnownProjectPath }) {
   // --- Milestones ---
 
   ipcMain.handle("milestones:load", async (_event, projectPath) => {
-    const filePath = path.join(projectPath, ".cc4d", "milestones.json");
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "milestones:load");
+    if (!safePath) return [];
+    const filePath = path.join(safePath, ".cc4d", "milestones.json");
     return loadJsonFile(filePath, []);
   });
 
   ipcMain.handle("milestones:save", async (_event, { projectPath, milestones }) => {
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "milestones:save");
+    if (!safePath) return false;
     try {
-      const filePath = path.join(projectPath, ".cc4d", "milestones.json");
+      const filePath = path.join(safePath, ".cc4d", "milestones.json");
       saveJsonFileAtomic(filePath, milestones);
       return true;
     } catch (err) {
@@ -69,13 +89,17 @@ function setupFilesIPC({ isKnownProjectPath }) {
   // --- Inspirations ---
 
   ipcMain.handle("inspirations:load", async (_event, projectPath) => {
-    const filePath = path.join(projectPath, ".cc4d", "inspirations.json");
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "inspirations:load");
+    if (!safePath) return [];
+    const filePath = path.join(safePath, ".cc4d", "inspirations.json");
     return loadJsonFile(filePath, []);
   });
 
   ipcMain.handle("inspirations:save", async (_event, { projectPath, urls }) => {
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "inspirations:save");
+    if (!safePath) return false;
     try {
-      const filePath = path.join(projectPath, ".cc4d", "inspirations.json");
+      const filePath = path.join(safePath, ".cc4d", "inspirations.json");
       saveJsonFileAtomic(filePath, urls);
       return true;
     } catch (err) {
@@ -87,11 +111,9 @@ function setupFilesIPC({ isKnownProjectPath }) {
   // --- Environment variables ---
 
   ipcMain.handle("env:load", async (_event, projectPath) => {
-    if (!isKnownProjectPath(projectPath)) {
-      log.warn("env:load blocked — path not in known projects:", projectPath);
-      return [];
-    }
-    const filePath = path.join(projectPath, ".env.local");
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "env:load");
+    if (!safePath) return [];
+    const filePath = path.join(safePath, ".env.local");
     try {
       const content = fs.readFileSync(filePath, "utf-8");
       const vars = [];
@@ -112,12 +134,10 @@ function setupFilesIPC({ isKnownProjectPath }) {
   });
 
   ipcMain.handle("env:save", async (_event, { projectPath, vars }) => {
-    if (!isKnownProjectPath(projectPath)) {
-      log.warn("env:save blocked — path not in known projects:", projectPath);
-      return false;
-    }
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "env:save");
+    if (!safePath) return false;
     try {
-      const filePath = path.join(projectPath, ".env.local");
+      const filePath = path.join(safePath, ".env.local");
       const content = vars
         .filter((v) => v.key.trim() && ENV_KEY_PATTERN.test(v.key.trim()))
         .map((v) => `${v.key.trim()}=${v.value}`)
@@ -134,7 +154,9 @@ function setupFilesIPC({ isKnownProjectPath }) {
   // --- Notes ---
 
   ipcMain.handle("notes:load", async (_event, projectPath) => {
-    const filePath = path.join(projectPath, ".cc4d", "notes.md");
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "notes:load");
+    if (!safePath) return "";
+    const filePath = path.join(safePath, ".cc4d", "notes.md");
     try {
       return fs.readFileSync(filePath, "utf-8");
     } catch {
@@ -143,8 +165,10 @@ function setupFilesIPC({ isKnownProjectPath }) {
   });
 
   ipcMain.handle("notes:save", async (_event, { projectPath, text }) => {
+    const safePath = resolveKnownProjectPath(projectPath, isKnownProjectPath, "notes:save");
+    if (!safePath) return false;
     try {
-      const filePath = path.join(projectPath, ".cc4d", "notes.md");
+      const filePath = path.join(safePath, ".cc4d", "notes.md");
       const dir = path.dirname(filePath);
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(filePath, text, "utf-8");

@@ -11,6 +11,7 @@ const phaseKeys = ["phase0", "phase1", "phase2", "phase3"] as const;
 export default function ProjectIdentityCard() {
   const t = useTranslations("ProjectPanel");
   const idea = useAppStore((s) => s.idea);
+  const projectName = useAppStore((s) => s.projectName);
   const phase = useAppStore((s) => s.phase);
   const liveUrl = useAppStore((s) => s.liveUrl);
   const activeProjectId = useAppStore((s) => s.activeProjectId);
@@ -20,7 +21,7 @@ export default function ProjectIdentityCard() {
   const [editValue, setEditValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const displayName = idea || "New project";
+  const displayName = idea || projectName || "New project";
 
   useEffect(() => {
     if (isEditing) {
@@ -30,16 +31,16 @@ export default function ProjectIdentityCard() {
   }, [isEditing]);
 
   function startEditing() {
-    setEditValue(idea || "");
+    setEditValue(displayName);
     setIsEditing(true);
   }
 
   function saveName() {
     const trimmed = editValue.trim();
-    if (trimmed && trimmed !== idea) {
+    if (trimmed && trimmed !== displayName) {
       setIdea(trimmed);
       if (activeProjectId) {
-        window.electronAPI?.updateProject?.(activeProjectId, {
+        void window.electronAPI?.updateProject?.(activeProjectId, {
           displayName: trimmed,
         });
       }

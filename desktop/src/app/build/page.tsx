@@ -12,15 +12,12 @@ import { useDebugStore } from "@/lib/debug-store";
 import { useDebugShortcut } from "@/lib/use-debug-shortcut";
 import ChatPanel from "@/components/chat/ChatPanel";
 import LivePreview from "@/components/preview/LivePreview";
-import FeedbackTransition from "@/components/chat/FeedbackTransition";
-import PhaseTransition from "@/components/progress/PhaseTransition";
 import DebugTerminal from "@/components/debug/DebugTerminal";
 import ProjectDrawer from "@/components/project/ProjectDrawer";
 import ProjectDrawerToggle from "@/components/project/ProjectDrawerToggle";
 import WorkspaceHeader from "@/components/build/WorkspaceHeader";
 
 import Logo from "@/components/brand/Logo";
-import LanguageToggle from "@/components/brand/LanguageToggle";
 
 function formatInitialMessage(locale: "he" | "en"): string {
   return locale === "he"
@@ -271,15 +268,9 @@ export default function BuildPage() {
           },
           onStepCompleted: (step) => {
             const st = useAppStore.getState();
-            const oldPhase = st.phase;
             st.completeStep(step);
             const newPhase = getPhaseForStep(step + 1);
             st.setStep(step + 1, newPhase);
-
-            // Trigger phase transition overlay when phase changes
-            if (newPhase !== oldPhase) {
-              st.setPhaseTransition({ from: oldPhase, to: newPhase });
-            }
           },
           onStepHint: (hintedStep) => {
             const st = useAppStore.getState();
@@ -288,17 +279,12 @@ export default function BuildPage() {
             // In workspace mode, don't advance steps
             if (st.isWorkspaceMode) return;
 
-            const oldPhase = st.phase;
             // Backfill: complete all steps before the hinted step
             for (let s = 1; s < hintedStep; s++) {
               st.completeStep(s);
             }
             const newPhase = getPhaseForStep(hintedStep);
             st.setStep(hintedStep, newPhase);
-
-            if (newPhase !== oldPhase) {
-              st.setPhaseTransition({ from: oldPhase, to: newPhase });
-            }
           },
           onPreviewReady: (url) => {
             void (async () => {
@@ -386,7 +372,6 @@ export default function BuildPage() {
               <Plus className="size-4" />
             </button>
           )}
-          <LanguageToggle />
         </div>
       </header>
 
@@ -410,19 +395,6 @@ export default function BuildPage() {
         )}
       </div>
 
-      {/* Feedback banner — only in wizard mode after build completes */}
-      {!isWorkspace && store.completedSteps.includes(4) && !store.isStreaming && (
-        <FeedbackTransition
-          locale={store.locale}
-          onFeedback={(msg) => handleSend(msg)}
-        />
-      )}
-
-      <PhaseTransition
-        transition={store.phaseTransition}
-        locale={store.locale}
-        onDismiss={() => store.setPhaseTransition(null)}
-      />
       <DebugTerminal />
       <ProjectDrawer />
     </div>

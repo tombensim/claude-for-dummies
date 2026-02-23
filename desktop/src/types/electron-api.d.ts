@@ -19,7 +19,7 @@ declare global {
       getRuntimeStatus: () => Promise<RuntimeStatus>;
 
       // Project — file system
-      openProject: (path: string) => Promise<void>;
+      openProject: (path: string) => Promise<boolean>;
 
       // Project — management
       createProject: (idea: string, locale: string) => Promise<ProjectMeta>;

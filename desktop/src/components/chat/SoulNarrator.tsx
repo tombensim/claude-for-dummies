@@ -74,6 +74,7 @@ export default function SoulNarrator({
   if (!narrator) return null;
 
   const text = locale === "he" ? narrator.he : narrator.en;
+  const isRtl = locale === "he";
 
   return (
     <AnimatePresence mode="wait">
@@ -84,8 +85,7 @@ export default function SoulNarrator({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className="mx-4 mb-3 flex items-start gap-3"
-          dir="ltr"
+          className={`mx-4 mb-3 flex items-start gap-3 ${isRtl ? "flex-row-reverse justify-end" : ""}`}
         >
           {/* Mascot avatar */}
           <div className="shrink-0">
@@ -101,10 +101,16 @@ export default function SoulNarrator({
           {/* Speech bubble */}
           <div
             className="relative rounded-2xl border-2 border-dummy-black/15 bg-dummy-yellow px-4 py-2.5 shadow-sm"
-            dir="auto"
+            dir={isRtl ? "rtl" : "ltr"}
           >
             {/* Tail pointing to mascot */}
-            <div className="absolute -left-2 top-3 h-3 w-3 rotate-45 border-b-2 border-l-2 border-dummy-black/15 bg-dummy-yellow" />
+            <div
+              className={
+                isRtl
+                  ? "absolute -right-2 top-3 h-3 w-3 -rotate-45 border-b-2 border-r-2 border-dummy-black/15 bg-dummy-yellow"
+                  : "absolute -left-2 top-3 h-3 w-3 rotate-45 border-b-2 border-l-2 border-dummy-black/15 bg-dummy-yellow"
+              }
+            />
             <p className="text-sm font-medium text-dummy-black leading-relaxed">
               {text}
             </p>

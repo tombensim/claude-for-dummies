@@ -18,6 +18,9 @@ function getProjectsDir() {
  * Prevents path traversal attacks from renderer-supplied paths.
  */
 function isPathWithinProjectsDir(targetPath) {
+  if (typeof targetPath !== "string" || !targetPath.trim()) {
+    return false;
+  }
   const resolved = path.resolve(targetPath);
   const projectsDir = getProjectsDir();
   return resolved.startsWith(projectsDir + path.sep) || resolved === projectsDir;
@@ -27,9 +30,22 @@ function isPathWithinProjectsDir(targetPath) {
  * Validate that a path belongs to a known project in the project store.
  */
 function isKnownProjectPath(targetPath) {
+  if (typeof targetPath !== "string" || !targetPath.trim()) {
+    return false;
+  }
   const resolved = path.resolve(targetPath);
   const projects = projectStore.getProjects();
-  return projects.some((p) => resolved === path.resolve(p.path) || resolved.startsWith(path.resolve(p.path) + path.sep));
+  return projects.some((p) => {
+    if (!p || typeof p.path !== "string" || !p.path.trim()) {
+      return false;
+    }
+    try {
+      const projectPath = path.resolve(p.path);
+      return resolved === projectPath || resolved.startsWith(projectPath + path.sep);
+    } catch {
+      return false;
+    }
+  });
 }
 
 // Shared context passed to sub-modules

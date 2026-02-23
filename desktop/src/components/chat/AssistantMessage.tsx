@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import MascotImage from "@/components/brand/MascotImage";
+import { useAppStore } from "@/lib/store";
 
 interface AssistantMessageProps {
   content: string;
@@ -86,20 +87,22 @@ const markdownComponents: Components = {
     <tr className="border-b border-dummy-black/15 last:border-b-0">{children}</tr>
   ),
   th: ({ children }) => (
-    <th className="px-3 py-2 text-right text-xs font-bold sm:text-sm">{children}</th>
+    <th className="px-3 py-2 text-start text-xs font-bold sm:text-sm">{children}</th>
   ),
   td: ({ children }) => (
-    <td className="px-3 py-2 align-top text-right text-xs sm:text-sm">{children}</td>
+    <td className="px-3 py-2 align-top text-start text-xs sm:text-sm">{children}</td>
   ),
 };
 
 export default function AssistantMessage({ content }: AssistantMessageProps) {
+  const locale = useAppStore((s) => s.locale);
+  const isRtl = locale === "he";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex gap-3 justify-start"
-      dir="ltr"
+      className={`flex w-full items-start gap-3 ${isRtl ? "flex-row-reverse justify-end" : "justify-start"}`}
     >
       <div className="shrink-0">
         <MascotImage
@@ -110,7 +113,10 @@ export default function AssistantMessage({ content }: AssistantMessageProps) {
           className="rounded-full"
         />
       </div>
-      <div className="max-w-[80%] rounded-2xl border-2 border-dummy-black/10 bg-dummy-white px-4 py-3 text-dummy-black shadow-sm" dir="auto">
+      <div
+        className="max-w-[80%] rounded-2xl border-2 border-dummy-black/10 bg-dummy-white px-4 py-3 text-dummy-black shadow-sm"
+        dir={isRtl ? "rtl" : "ltr"}
+      >
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={markdownComponents}
