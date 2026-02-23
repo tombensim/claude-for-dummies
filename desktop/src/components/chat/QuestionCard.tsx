@@ -37,11 +37,12 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
     onAnswer(answer);
   }, [questions, selections, submitted, onAnswer]);
 
-  if (!questions || questions.length === 0) return null;
-
-  const allAnswered = Object.keys(selections).length === questions.length;
+  const hasQuestions = !!questions && questions.length > 0;
+  const allAnswered = hasQuestions && Object.keys(selections).length === questions.length;
 
   useEffect(() => {
+    if (!hasQuestions) return;
+
     const el = cardRef.current;
     if (!el) return;
 
@@ -58,7 +59,9 @@ export default function QuestionCard({ message, onAnswer }: QuestionCardProps) {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [selections, submitted, allAnswered]);
+  }, [selections, submitted, allAnswered, hasQuestions]);
+
+  if (!hasQuestions) return null;
 
   return (
     <motion.div
